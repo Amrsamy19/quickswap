@@ -4,3 +4,7 @@ export * from './accounts/service';
 export * from './security/service';
 export * from './activity/service';
 export * from './settings/service';
+export * from './launcher/launcher-service';
+export * from './launcher/process-monitor';
+export * from './adapters/base.adapter';
+export * from './adapters/adapter-registry';
