@@ -16,6 +16,7 @@ import {
   Copy,
   Check,
   KeyRound,
+  Sparkles,
 } from 'lucide-react';
 import { AccountModal } from './AccountModal';
 
@@ -93,6 +94,9 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
           accountName: acc?.displayName || 'Account',
           message: res.message || 'The application is already running.',
         });
+      } else if (res.autoLoginTriggered) {
+        setToastMessage('Riot Client launched! Auto-filling credentials and logging in automatically...');
+        setTimeout(() => setToastMessage(null), 5000);
       } else if (res.copiedPassword) {
         const acc = accounts.find((a) => a.id === accId);
         const app = applications.find((a) => a.id === acc?.applicationId);
@@ -160,6 +164,22 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
       });
     } finally {
       setCapturingSessionId(null);
+    }
+  };
+
+  const handleAutoLogin = async (accId: string) => {
+    if (!api) return;
+    try {
+      setToastMessage('Waiting for client window to auto-fill credentials...');
+      const res = await api.launcher.autoLogin(accId);
+      if (res.success) {
+        setToastMessage(res.message || 'Credentials auto-filled and login submitted!');
+        setTimeout(() => setToastMessage(null), 4000);
+      } else {
+        alert(res.message || 'Auto-login failed');
+      }
+    } catch (err: any) {
+      alert(`Auto-login error: ${err.message}`);
     }
   };
 
@@ -384,6 +404,18 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
                           >
                             <Zap className={`w-3 h-3 ${acc.hasSession ? 'fill-current' : ''}`} />
                             <span>{acc.hasSession ? 'Linked' : 'Link Session'}</span>
+                          </button>
+                        )}
+
+                        {/* Auto-Fill & Log In Button */}
+                        {acc.hasCredentials && (
+                          <button
+                            onClick={() => handleAutoLogin(acc.id)}
+                            title="Auto-fill credentials into active window and submit login"
+                            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/25 text-xs font-semibold transition-all cursor-pointer shadow-sm shadow-indigo-500/10"
+                          >
+                            <Sparkles className="w-3 h-3 text-indigo-400" />
+                            <span>Auto-Fill</span>
                           </button>
                         )}
 
