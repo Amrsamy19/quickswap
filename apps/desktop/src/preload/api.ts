@@ -71,6 +71,8 @@ export const accountHubAPI: AccountHubAPI = {
       ipcRenderer.invoke(IPC_CHANNELS.LAUNCHER_HAS_SESSION, accountId),
     clearSession: (accountId: string): Promise<void> =>
       ipcRenderer.invoke(IPC_CHANNELS.LAUNCHER_CLEAR_SESSION, accountId),
+    autoLogin: (accountId: string): Promise<{ success: boolean; message: string }> =>
+      ipcRenderer.invoke(IPC_CHANNELS.LAUNCHER_AUTO_LOGIN, accountId),
   },
 
   activity: {

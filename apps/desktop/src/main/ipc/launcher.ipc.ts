@@ -41,4 +41,8 @@ export function registerLauncherIpcHandlers(): void {
   ipcMain.handle(IPC_CHANNELS.LAUNCHER_CLEAR_SESSION, async (_event, accountId: string) => {
     return LauncherService.clearSession(accountId);
   });
+
+  ipcMain.handle(IPC_CHANNELS.LAUNCHER_AUTO_LOGIN, async (_event, accountId: string) => {
+    return LauncherService.autoLogin(accountId);
+  });
 }
