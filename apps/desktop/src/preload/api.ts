@@ -46,6 +46,8 @@ export const accountHubAPI: AccountHubAPI = {
       ipcRenderer.invoke(IPC_CHANNELS.ACCOUNTS_SET_DEFAULT, id),
     toggleFavorite: (id: string): Promise<boolean> =>
       ipcRenderer.invoke(IPC_CHANNELS.ACCOUNTS_TOGGLE_FAVORITE, id),
+    copyPassword: (id: string): Promise<{ success: boolean; durationSeconds: number; username?: string; message?: string }> =>
+      ipcRenderer.invoke(IPC_CHANNELS.ACCOUNTS_COPY_PASSWORD, id),
   },
 
   security: {
@@ -63,6 +65,12 @@ export const accountHubAPI: AccountHubAPI = {
       ipcRenderer.invoke(IPC_CHANNELS.LAUNCHER_GET_STATUS, applicationId),
     getHistory: (limit?: number): Promise<LaunchHistoryEntry[]> =>
       ipcRenderer.invoke(IPC_CHANNELS.LAUNCHER_GET_HISTORY, limit),
+    captureSession: (accountId: string): Promise<{ success: boolean; message: string }> =>
+      ipcRenderer.invoke(IPC_CHANNELS.LAUNCHER_CAPTURE_SESSION, accountId),
+    hasSession: (accountId: string): Promise<boolean> =>
+      ipcRenderer.invoke(IPC_CHANNELS.LAUNCHER_HAS_SESSION, accountId),
+    clearSession: (accountId: string): Promise<void> =>
+      ipcRenderer.invoke(IPC_CHANNELS.LAUNCHER_CLEAR_SESSION, accountId),
   },
 
   activity: {

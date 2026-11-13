@@ -6,6 +6,7 @@ import {
   UpdateAccountInput,
   AccountFilter,
 } from '@accounthub/shared';
+import { copySecretWithAutoWipe } from '../clipboard-helper';
 
 export function registerAccountIpcHandlers(): void {
   ipcMain.handle(IPC_CHANNELS.ACCOUNTS_LIST, async (_event, filter?: AccountFilter) => {
@@ -40,5 +41,23 @@ export function registerAccountIpcHandlers(): void {
 
   ipcMain.handle(IPC_CHANNELS.ACCOUNTS_TOGGLE_FAVORITE, async (_event, id: string) => {
     return AccountService.toggleFavorite(id);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.ACCOUNTS_COPY_PASSWORD, async (_event, id: string) => {
+    const cred = await AccountService.getPassword(id);
+    if (!cred || !cred.password) {
+      return {
+        success: false,
+        durationSeconds: 0,
+        message: 'No password is saved in Windows Credential Manager for this account.',
+      };
+    }
+    copySecretWithAutoWipe(cred.password, 30000);
+    return {
+      success: true,
+      durationSeconds: 30,
+      username: cred.username,
+      message: 'Password copied to clipboard. Auto-wiping in 30 seconds.',
+    };
   });
 }
