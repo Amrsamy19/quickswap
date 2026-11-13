@@ -21,6 +21,7 @@ export class NativeBridge {
       path.resolve(__dirname, '../../bin/AccountHubSecHelper.exe'),
       path.resolve(__dirname, '../bin/AccountHubSecHelper.exe'),
       path.resolve(__dirname, '../../../packages/security/bin/AccountHubSecHelper.exe'),
+      path.resolve(__dirname, '../../../../packages/security/bin/AccountHubSecHelper.exe'),
       path.resolve(process.cwd(), 'packages/security/bin/AccountHubSecHelper.exe'),
       path.resolve(process.cwd(), 'resources/bin/AccountHubSecHelper.exe'),
     ];
