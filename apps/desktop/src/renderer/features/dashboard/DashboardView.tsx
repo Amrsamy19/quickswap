@@ -14,6 +14,7 @@ import {
   Sparkles,
   ArrowRight,
   Shield,
+  Play,
 } from 'lucide-react';
 
 interface DashboardViewProps {
@@ -24,6 +25,7 @@ interface DashboardViewProps {
   onNavigateToAccounts: (appId?: string) => void;
   onNavigateToApplications: () => void;
   onNavigateToSecurity: () => void;
+  onLaunchAccount: (accountId: string) => Promise<any>;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -34,6 +36,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onNavigateToAccounts,
   onNavigateToApplications,
   onNavigateToSecurity,
+  onLaunchAccount,
 }) => {
   const favoriteApps = applications.filter((a) => a.isFavorite);
   const favoriteAccounts = accounts.filter((a) => a.isFavorite || a.isDefault);
@@ -221,9 +224,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                             <Shield className="w-3.5 h-3.5" />
                           </span>
                         )}
-                        <span className="text-[11px] px-2 py-1 rounded-lg bg-slate-800 text-slate-300 capitalize font-medium">
-                          {acc.authMethod}
-                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onLaunchAccount(acc.id);
+                          }}
+                          title="Launch Application With This Account"
+                          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-[11px] shadow-sm shadow-emerald-600/20 transition-all cursor-pointer"
+                        >
+                          <Play className="w-3 h-3 fill-current" />
+                          <span>Launch</span>
+                        </button>
                       </div>
                     </div>
                   );

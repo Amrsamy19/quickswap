@@ -10,6 +10,8 @@ import {
   Edit2,
   CheckCircle,
   Crown,
+  Play,
+  AlertTriangle,
 } from 'lucide-react';
 import { AccountModal } from './AccountModal';
 
@@ -22,6 +24,7 @@ interface AccountsViewProps {
   onDeleteAccount: (id: string) => Promise<void>;
   onSetDefault: (id: string) => Promise<void>;
   onToggleFavorite: (id: string) => Promise<void>;
+  onLaunchAccount: (id: string, force?: boolean) => Promise<{ success: boolean; alreadyRunning?: boolean; message?: string }>;
 }
 
 export const AccountsView: React.FC<AccountsViewProps> = ({
@@ -33,6 +36,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
   onDeleteAccount,
   onSetDefault,
   onToggleFavorite,
+  onLaunchAccount,
 }) => {
   const [appFilter, setAppFilter] = useState<string>(selectedAppId || 'all');
   const [search, setSearch] = useState('');
@@ -40,6 +44,38 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [alreadyRunningWarning, setAlreadyRunningWarning] = useState<{
+    accountId: string;
+    appName: string;
+    accountName: string;
+    message: string;
+  } | null>(null);
+  const [launchingId, setLaunchingId] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const handleLaunch = async (accId: string, force: boolean = false) => {
+    try {
+      setLaunchingId(accId);
+      const res = await onLaunchAccount(accId, force);
+      if (res.alreadyRunning) {
+        const acc = accounts.find((a) => a.id === accId);
+        const app = applications.find((a) => a.id === acc?.applicationId);
+        setAlreadyRunningWarning({
+          accountId: accId,
+          appName: app?.name || 'Application',
+          accountName: acc?.displayName || 'Account',
+          message: res.message || 'The application is already running.',
+        });
+      } else if (res.success) {
+        setToastMessage(res.message || 'Application launched successfully!');
+        setTimeout(() => setToastMessage(null), 4000);
+      }
+    } catch (err: any) {
+      alert(`Launch error: ${err.message}`);
+    } finally {
+      setLaunchingId(null);
+    }
+  };
 
   const filteredAccounts = accounts.filter((acc) => {
     const matchesApp = appFilter === 'all' || acc.applicationId === appFilter;
@@ -220,6 +256,17 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
                     {/* Actions */}
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
+                        {/* Launch Account */}
+                        <button
+                          onClick={() => handleLaunch(acc.id)}
+                          disabled={launchingId === acc.id}
+                          title="Launch Application With This Account"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm shadow-emerald-600/20 transition-all cursor-pointer mr-1 disabled:opacity-50"
+                        >
+                          <Play className={`w-3 h-3 fill-current ${launchingId === acc.id ? 'animate-spin' : ''}`} />
+                          <span>{launchingId === acc.id ? 'Starting...' : 'Launch'}</span>
+                        </button>
+
                         {/* Toggle Favorite */}
                         <button
                           onClick={() => onToggleFavorite(acc.id)}
@@ -286,6 +333,54 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
           }
         }}
       />
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 bg-emerald-600 text-white px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 text-xs font-semibold animate-in fade-in slide-in-from-bottom-2">
+          <CheckCircle className="w-4 h-4" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
+      {/* Already Running Warning Dialog */}
+      {alreadyRunningWarning && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="bg-[#111827] border border-amber-500/30 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center text-amber-400">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white">Application Already Running</h3>
+                <p className="text-xs text-amber-400 font-medium">Safe Switching Warning</p>
+              </div>
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              <strong>{alreadyRunningWarning.appName}</strong> is already open on this computer.
+              To switch accounts safely without losing progress or causing client conflicts, we
+              recommend closing the active client first.
+            </p>
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                onClick={() => setAlreadyRunningWarning(null)}
+                className="px-4 py-2 rounded-lg border border-slate-700 text-xs text-slate-300 hover:bg-slate-800"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  const id = alreadyRunningWarning.accountId;
+                  setAlreadyRunningWarning(null);
+                  handleLaunch(id, true);
+                }}
+                className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold shadow-md shadow-amber-600/20"
+              >
+                Launch Anyway
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Delete Confirmation Dialog */}
       {deleteConfirmId && (

@@ -114,6 +114,13 @@ export const App: React.FC = () => {
     await loadData();
   };
 
+  const handleLaunchAccount = async (accountId: string, force: boolean = false) => {
+    if (!api) return { success: false, message: 'API not available' };
+    const res = await api.launcher.launch(accountId, force);
+    await loadData();
+    return res;
+  };
+
   const handleToggleFavorite = async (id: string) => {
     if (!api) return;
     await api.accounts.toggleFavorite(id);
@@ -211,6 +218,7 @@ export const App: React.FC = () => {
               }}
               onNavigateToApplications={() => setCurrentTab('applications')}
               onNavigateToSecurity={() => setCurrentTab('security')}
+              onLaunchAccount={handleLaunchAccount}
             />
           )}
 
@@ -238,6 +246,7 @@ export const App: React.FC = () => {
               onDeleteAccount={handleDeleteAccount}
               onSetDefault={handleSetDefault}
               onToggleFavorite={handleToggleFavorite}
+              onLaunchAccount={handleLaunchAccount}
             />
           )}
 
