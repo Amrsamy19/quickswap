@@ -10,6 +10,8 @@ export type ActivityAction =
   | 'credentials_cleared'
   | 'session_saved'
   | 'session_cleared'
+  | 'session_captured'
+  | 'session_restored'
   | 'security_event'
   | 'system_startup';
 

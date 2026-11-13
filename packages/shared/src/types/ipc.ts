@@ -43,6 +43,7 @@ export interface AccountHubAPI {
     delete(id: string): Promise<void>;
     setDefault(id: string): Promise<void>;
     toggleFavorite(id: string): Promise<boolean>;
+    copyPassword(accountId: string): Promise<{ success: boolean; durationSeconds: number; username?: string; message?: string }>;
   };
 
   security: {
@@ -52,9 +53,12 @@ export interface AccountHubAPI {
   };
 
   launcher: {
-    launch(accountId: string): Promise<LaunchResult>;
+    launch(accountId: string, force?: boolean): Promise<LaunchResult>;
     getStatus(applicationId: string): Promise<ProcessStatus>;
     getHistory(limit?: number): Promise<LaunchHistoryEntry[]>;
+    captureSession(accountId: string): Promise<{ success: boolean; message: string }>;
+    hasSession(accountId: string): Promise<boolean>;
+    clearSession(accountId: string): Promise<void>;
   };
 
   activity: {

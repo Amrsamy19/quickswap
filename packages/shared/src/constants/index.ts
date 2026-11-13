@@ -33,6 +33,7 @@ export const IPC_CHANNELS = {
   ACCOUNTS_DELETE: 'accounts:delete',
   ACCOUNTS_SET_DEFAULT: 'accounts:setDefault',
   ACCOUNTS_TOGGLE_FAVORITE: 'accounts:toggleFavorite',
+  ACCOUNTS_COPY_PASSWORD: 'accounts:copyPassword',
 
   SECURITY_GET_STATUS: 'security:getStatus',
   SECURITY_LIST_CREDENTIALS: 'security:listStoredCredentials',
@@ -41,6 +42,9 @@ export const IPC_CHANNELS = {
   LAUNCHER_LAUNCH: 'launcher:launch',
   LAUNCHER_GET_STATUS: 'launcher:getStatus',
   LAUNCHER_GET_HISTORY: 'launcher:getHistory',
+  LAUNCHER_CAPTURE_SESSION: 'launcher:captureSession',
+  LAUNCHER_HAS_SESSION: 'launcher:hasSession',
+  LAUNCHER_CLEAR_SESSION: 'launcher:clearSession',
 
   ACTIVITY_LIST: 'activity:list',
   ACTIVITY_CLEAR: 'activity:clear',

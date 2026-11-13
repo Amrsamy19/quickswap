@@ -3,6 +3,9 @@ export interface LaunchResult {
   pid?: number;
   message?: string;
   alreadyRunning?: boolean;
+  copiedPassword?: boolean;
+  sessionRestored?: boolean;
+  requiresManualLogin?: boolean;
 }
 
 export interface ProcessStatus {
