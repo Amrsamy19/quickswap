@@ -38,6 +38,10 @@ export const IPC_CHANNELS = {
   SECURITY_LIST_CREDENTIALS: 'security:listStoredCredentials',
   SECURITY_VERIFY_INTEGRITY: 'security:verifyIntegrity',
 
+  LAUNCHER_LAUNCH: 'launcher:launch',
+  LAUNCHER_GET_STATUS: 'launcher:getStatus',
+  LAUNCHER_GET_HISTORY: 'launcher:getHistory',
+
   ACTIVITY_LIST: 'activity:list',
   ACTIVITY_CLEAR: 'activity:clear',
 

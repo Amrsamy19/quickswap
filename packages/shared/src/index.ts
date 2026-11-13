@@ -2,6 +2,7 @@ export * from './types/application';
 export * from './types/account';
 export * from './types/secret';
 export * from './types/activity';
+export * from './types/launcher';
 export * from './types/settings';
 export * from './types/ipc';
 export * from './schemas';

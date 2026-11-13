@@ -14,6 +14,7 @@ import {
 import { AppSettings, UpdateSettingsInput } from './settings';
 import { ActivityLogEntry } from './activity';
 import { StoredCredentialMetadata } from './secret';
+import { LaunchResult, ProcessStatus, LaunchHistoryEntry } from './launcher';
 
 export interface SecurityStatus {
   windowsCredManagerAvailable: boolean;
@@ -48,6 +49,12 @@ export interface AccountHubAPI {
     getStatus(): Promise<SecurityStatus>;
     listStoredCredentials(): Promise<StoredCredentialMetadata[]>;
     verifyIntegrity(): Promise<{ valid: boolean; issues: string[] }>;
+  };
+
+  launcher: {
+    launch(accountId: string): Promise<LaunchResult>;
+    getStatus(applicationId: string): Promise<ProcessStatus>;
+    getHistory(limit?: number): Promise<LaunchHistoryEntry[]>;
   };
 
   activity: {
