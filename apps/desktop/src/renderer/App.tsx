@@ -247,6 +247,7 @@ export const App: React.FC = () => {
               onSetDefault={handleSetDefault}
               onToggleFavorite={handleToggleFavorite}
               onLaunchAccount={handleLaunchAccount}
+              onRefreshData={loadData}
             />
           )}
 

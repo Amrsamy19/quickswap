@@ -15,6 +15,7 @@ import {
   ArrowRight,
   Shield,
   Play,
+  Zap,
 } from 'lucide-react';
 
 interface DashboardViewProps {
@@ -216,14 +217,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       </div>
 
                       <div className="flex items-center gap-2">
-                        {acc.hasCredentials && (
+                        {acc.hasSession ? (
+                          <span
+                            title="1-Click Session Linked (DPAPI Protected)"
+                            className="p-1 rounded-md bg-emerald-500/10 text-emerald-400"
+                          >
+                            <Zap className="w-3.5 h-3.5 fill-current" />
+                          </span>
+                        ) : acc.hasCredentials ? (
                           <span
                             title="Protected in Windows Credential Manager"
-                            className="p-1 rounded-md bg-emerald-500/10 text-emerald-400"
+                            className="p-1 rounded-md bg-blue-500/10 text-blue-400"
                           >
                             <Shield className="w-3.5 h-3.5" />
                           </span>
-                        )}
+                        ) : null}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();

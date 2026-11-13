@@ -12,6 +12,10 @@ import {
   Crown,
   Play,
   AlertTriangle,
+  Zap,
+  Copy,
+  Check,
+  KeyRound,
 } from 'lucide-react';
 import { AccountModal } from './AccountModal';
 
@@ -24,7 +28,14 @@ interface AccountsViewProps {
   onDeleteAccount: (id: string) => Promise<void>;
   onSetDefault: (id: string) => Promise<void>;
   onToggleFavorite: (id: string) => Promise<void>;
-  onLaunchAccount: (id: string, force?: boolean) => Promise<{ success: boolean; alreadyRunning?: boolean; message?: string }>;
+  onLaunchAccount: (id: string, force?: boolean) => Promise<{
+    success: boolean;
+    alreadyRunning?: boolean;
+    message?: string;
+    sessionRestored?: boolean;
+    copiedPassword?: boolean;
+  }>;
+  onRefreshData?: () => Promise<void>;
 }
 
 export const AccountsView: React.FC<AccountsViewProps> = ({
@@ -37,6 +48,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
   onSetDefault,
   onToggleFavorite,
   onLaunchAccount,
+  onRefreshData,
 }) => {
   const [appFilter, setAppFilter] = useState<string>(selectedAppId || 'all');
   const [search, setSearch] = useState('');
@@ -52,6 +64,21 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
   } | null>(null);
   const [launchingId, setLaunchingId] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [copiedAccountId, setCopiedAccountId] = useState<string | null>(null);
+  const [capturingSessionId, setCapturingSessionId] = useState<string | null>(null);
+  const [sessionHelperDialog, setSessionHelperDialog] = useState<{
+    accountId: string;
+    appName: string;
+    accountName: string;
+    message: string;
+  } | null>(null);
+  const [sessionInfoModal, setSessionInfoModal] = useState<{
+    title: string;
+    message: string;
+    isError?: boolean;
+  } | null>(null);
+
+  const api = typeof window !== 'undefined' ? window.accountHubAPI : null;
 
   const handleLaunch = async (accId: string, force: boolean = false) => {
     try {
@@ -66,6 +93,17 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
           accountName: acc?.displayName || 'Account',
           message: res.message || 'The application is already running.',
         });
+      } else if (res.copiedPassword) {
+        const acc = accounts.find((a) => a.id === accId);
+        const app = applications.find((a) => a.id === acc?.applicationId);
+        setSessionHelperDialog({
+          accountId: accId,
+          appName: app?.name || 'Application',
+          accountName: acc?.displayName || 'Account',
+          message: res.message || 'Password auto-copied to clipboard.',
+        });
+        setCopiedAccountId(accId);
+        setTimeout(() => setCopiedAccountId(null), 30000);
       } else if (res.success) {
         setToastMessage(res.message || 'Application launched successfully!');
         setTimeout(() => setToastMessage(null), 4000);
@@ -74,6 +112,54 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
       alert(`Launch error: ${err.message}`);
     } finally {
       setLaunchingId(null);
+    }
+  };
+
+  const handleCopyPassword = async (accId: string) => {
+    if (!api) return;
+    try {
+      const res = await api.accounts.copyPassword(accId);
+      if (res.success) {
+        setCopiedAccountId(accId);
+        setToastMessage(`Password copied! Auto-wiping in ${res.durationSeconds}s.`);
+        setTimeout(() => {
+          setCopiedAccountId(null);
+          setToastMessage(null);
+        }, res.durationSeconds * 1000);
+      } else {
+        alert(res.message || 'Failed to copy password.');
+      }
+    } catch (err: any) {
+      alert(`Failed to copy password: ${err.message}`);
+    }
+  };
+
+  const handleCaptureSession = async (accId: string) => {
+    if (!api) return;
+    try {
+      setCapturingSessionId(accId);
+      const res = await api.launcher.captureSession(accId);
+      if (res.success) {
+        setToastMessage(res.message);
+        setTimeout(() => setToastMessage(null), 5000);
+        if (onRefreshData) {
+          await onRefreshData();
+        }
+      } else {
+        setSessionInfoModal({
+          title: 'Link Riot Session',
+          message: res.message,
+          isError: true,
+        });
+      }
+    } catch (err: any) {
+      setSessionInfoModal({
+        title: 'Session Capture Error',
+        message: err.message,
+        isError: true,
+      });
+    } finally {
+      setCapturingSessionId(null);
     }
   };
 
@@ -241,13 +327,26 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
                       </span>
                     </td>
 
-                    {/* Vault Status */}
+                    {/* Vault & Session Status */}
                     <td className="px-4 py-4">
-                      {acc.hasCredentials ? (
-                        <span className="inline-flex items-center gap-1.5 text-emerald-400 font-medium text-[11px]">
-                          <Shield className="w-3.5 h-3.5" />
-                          <span>WinCred Secured</span>
-                        </span>
+                      {acc.hasSession ? (
+                        <div className="flex flex-col gap-0.5">
+                          <span className="inline-flex items-center gap-1.5 text-emerald-400 font-medium text-[11px]">
+                            <Zap className="w-3.5 h-3.5 fill-emerald-400 text-emerald-400" />
+                            <span>1-Click Ready</span>
+                          </span>
+                          <span className="text-[10px] text-slate-500">DPAPI Session</span>
+                        </div>
+                      ) : acc.hasCredentials ? (
+                        <div className="flex flex-col gap-0.5">
+                          <span className="inline-flex items-center gap-1.5 text-blue-400 font-medium text-[11px]">
+                            <Shield className="w-3.5 h-3.5" />
+                            <span>WinCred Saved</span>
+                          </span>
+                          {parentApp?.adapterId === 'riot' && (
+                            <span className="text-[10px] text-amber-400/90 font-medium">Link session for 1-click</span>
+                          )}
+                        </div>
                       ) : (
                         <span className="text-slate-500 text-[11px]">Manual / Unset</span>
                       )}
@@ -266,6 +365,46 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
                           <Play className={`w-3 h-3 fill-current ${launchingId === acc.id ? 'animate-spin' : ''}`} />
                           <span>{launchingId === acc.id ? 'Starting...' : 'Launch'}</span>
                         </button>
+
+                        {/* Link / Re-link Riot Session */}
+                        {parentApp?.adapterId === 'riot' && (
+                          <button
+                            onClick={() => handleCaptureSession(acc.id)}
+                            disabled={capturingSessionId === acc.id}
+                            title={
+                              acc.hasSession
+                                ? 'Session linked! Click to refresh active Riot Client session'
+                                : 'Link current Riot Client login for instant 1-click launch'
+                            }
+                            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                              acc.hasSession
+                                ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/30'
+                                : 'bg-amber-500/15 text-amber-400 hover:bg-amber-500/25 border border-amber-500/30 shadow-sm shadow-amber-500/10'
+                            }`}
+                          >
+                            <Zap className={`w-3 h-3 ${acc.hasSession ? 'fill-current' : ''}`} />
+                            <span>{acc.hasSession ? 'Linked' : 'Link Session'}</span>
+                          </button>
+                        )}
+
+                        {/* Copy Password with 30s auto-wipe */}
+                        {acc.hasCredentials && (
+                          <button
+                            onClick={() => handleCopyPassword(acc.id)}
+                            title="Copy Password (auto-wipes in 30s)"
+                            className={`p-1.5 rounded-lg transition-colors ${
+                              copiedAccountId === acc.id
+                                ? 'text-emerald-400 bg-emerald-500/20 border border-emerald-500/30'
+                                : 'text-slate-500 hover:text-slate-200 hover:bg-slate-800'
+                            }`}
+                          >
+                            {copiedAccountId === acc.id ? (
+                              <Check className="w-3.5 h-3.5 text-emerald-400" />
+                            ) : (
+                              <KeyRound className="w-3.5 h-3.5" />
+                            )}
+                          </button>
+                        )}
 
                         {/* Toggle Favorite */}
                         <button
@@ -404,6 +543,97 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
                 className="px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold shadow-md shadow-rose-600/20"
               >
                 Confirm & Wipe Secrets
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Session Helper Dialog (Launched without saved session) */}
+      {sessionHelperDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="bg-[#111827] border border-blue-500/30 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-500/15 flex items-center justify-center text-blue-400">
+                <Zap className="w-5 h-5 fill-current" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white">Riot Client Launched</h3>
+                <p className="text-xs text-blue-400 font-medium">Quick Login & Session Setup</p>
+              </div>
+            </div>
+
+            <div className="space-y-2 text-xs text-slate-300 leading-relaxed">
+              <div className="p-3 rounded-xl bg-blue-950/40 border border-blue-800/40 text-blue-200">
+                <strong>Password copied to clipboard!</strong> It will automatically wipe in 30 seconds for security.
+              </div>
+              <p>
+                Riot Games does not support command-line credentials. To enable seamless <strong>1-Click Launch</strong> in the future:
+              </p>
+              <ol className="list-decimal list-inside space-y-1 text-slate-400 pl-1">
+                <li>Paste your password into the Riot Client window.</li>
+                <li>
+                  Check <strong className="text-white">"Stay signed in"</strong> and log into your account.
+                </li>
+                <li>
+                  Once you are logged into Riot Client, click <strong className="text-amber-400">"Link Riot Session Now"</strong> below.
+                </li>
+              </ol>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                onClick={() => setSessionHelperDialog(null)}
+                className="px-4 py-2 rounded-lg border border-slate-700 text-xs text-slate-300 hover:bg-slate-800"
+              >
+                I'll Link Later
+              </button>
+              <button
+                onClick={async () => {
+                  const id = sessionHelperDialog.accountId;
+                  await handleCaptureSession(id);
+                  setSessionHelperDialog(null);
+                }}
+                disabled={capturingSessionId !== null}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold shadow-md shadow-amber-600/20"
+              >
+                <Zap className="w-3.5 h-3.5 fill-current" />
+                <span>Link Riot Session Now</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Session Info / Error Modal */}
+      {sessionInfoModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="bg-[#111827] border border-slate-800 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl">
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                  sessionInfoModal.isError
+                    ? 'bg-amber-500/15 text-amber-400'
+                    : 'bg-emerald-500/15 text-emerald-400'
+                }`}
+              >
+                {sessionInfoModal.isError ? (
+                  <AlertTriangle className="w-5 h-5" />
+                ) : (
+                  <CheckCircle className="w-5 h-5" />
+                )}
+              </div>
+              <h3 className="text-base font-bold text-white">{sessionInfoModal.title}</h3>
+            </div>
+
+            <p className="text-xs text-slate-300 leading-relaxed">{sessionInfoModal.message}</p>
+
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={() => setSessionInfoModal(null)}
+                className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold"
+              >
+                Got It
               </button>
             </div>
           </div>
