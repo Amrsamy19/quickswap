@@ -6,6 +6,7 @@ export interface LaunchResult {
   copiedPassword?: boolean;
   sessionRestored?: boolean;
   requiresManualLogin?: boolean;
+  autoLoginTriggered?: boolean;
 }
 
 export interface ProcessStatus {

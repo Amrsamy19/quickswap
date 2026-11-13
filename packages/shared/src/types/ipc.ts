@@ -59,6 +59,7 @@ export interface AccountHubAPI {
     captureSession(accountId: string): Promise<{ success: boolean; message: string }>;
     hasSession(accountId: string): Promise<boolean>;
     clearSession(accountId: string): Promise<void>;
+    autoLogin(accountId: string): Promise<{ success: boolean; message: string }>;
   };
 
   activity: {

@@ -45,6 +45,7 @@ export const IPC_CHANNELS = {
   LAUNCHER_CAPTURE_SESSION: 'launcher:captureSession',
   LAUNCHER_HAS_SESSION: 'launcher:hasSession',
   LAUNCHER_CLEAR_SESSION: 'launcher:clearSession',
+  LAUNCHER_AUTO_LOGIN: 'launcher:autoLogin',
 
   ACTIVITY_LIST: 'activity:list',
   ACTIVITY_CLEAR: 'activity:clear',
