@@ -5,7 +5,9 @@
   "description": "AccountHub - Universal desktop account manager for Windows",
   "scripts": {
     "dev": "pnpm --filter @accounthub/desktop dev",
+    "start": "pnpm --filter @accounthub/desktop start",
     "build": "pnpm -r --filter \"./packages/*\" build && pnpm --filter @accounthub/desktop build",
+    "package:win": "pnpm --filter @accounthub/desktop package:win",
     "compile:sec": "powershell -ExecutionPolicy Bypass -File ./packages/security/scripts/compile-helper.ps1",
     "test": "vitest run",
     "typecheck": "tsc --build"

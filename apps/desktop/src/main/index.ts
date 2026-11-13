@@ -23,12 +23,11 @@ function createWindow(): void {
   });
 
   // Load dev server or production build
-  const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
-  if (isDev && process.env.ELECTRON_RENDERER_URL) {
-    mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL);
-  } else if (isDev) {
+  const devServerUrl = process.env.ELECTRON_RENDERER_URL || process.env.VITE_DEV_SERVER_URL;
+  if (devServerUrl) {
+    mainWindow.loadURL(devServerUrl);
+  } else if (process.env.NODE_ENV === 'development') {
     mainWindow.loadURL('http://localhost:5173').catch(() => {
-      // If dev server not running, fall back to dist/index.html
       mainWindow?.loadFile(path.join(__dirname, '../../dist/index.html'));
     });
   } else {
