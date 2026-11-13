@@ -44,4 +44,31 @@ export class ProcessMonitor {
       );
     });
   }
+
+  /**
+   * Gracefully or forcefully terminates a process by executable name or PID.
+   */
+  public static async killProcess(imageNameOrPid: string | number): Promise<boolean> {
+    return new Promise((resolve) => {
+      const args =
+        typeof imageNameOrPid === 'number'
+          ? ['/F', '/PID', imageNameOrPid.toString()]
+          : ['/F', '/IM', path.basename(imageNameOrPid)];
+
+      execFile('taskkill.exe', args, { windowsHide: true }, (error) => {
+        resolve(!error);
+      });
+    });
+  }
+
+  /**
+   * Safely terminates any active Riot Client processes to allow swapping session files without file lock conflicts.
+   */
+  public static async killRiotClient(): Promise<boolean> {
+    await this.killProcess('RiotClientServices.exe');
+    await this.killProcess('RiotClientUx.exe');
+    // Short wait to ensure file handles are released
+    await new Promise((r) => setTimeout(r, 600));
+    return true;
+  }
 }
