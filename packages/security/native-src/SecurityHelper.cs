@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Windows.Forms;
 
 namespace AccountHub.Security {
     class Program {
@@ -23,6 +25,14 @@ namespace AccountHub.Security {
             public string UserName;
         }
 
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RECT {
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
+        }
+
         [DllImport("advapi32.dll", EntryPoint = "CredWriteW", CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern bool CredWrite([In] ref CREDENTIAL userCredential, [In] uint flags);
 
@@ -38,9 +48,39 @@ namespace AccountHub.Security {
         [DllImport("advapi32.dll", EntryPoint = "CredFree", SetLastError = true)]
         public static extern void CredFree([In] IntPtr cred);
 
+        [DllImport("user32.dll")]
+        public static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+        public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        public static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+
+        [DllImport("user32.dll")]
+        public static extern bool IsWindowVisible(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+        [DllImport("user32.dll")]
+        public static extern bool SetForegroundWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+        [DllImport("user32.dll")]
+        public static extern bool AttachThreadInput(uint idAttach, uint idAttachTo, bool fAttach);
+
+        [DllImport("kernel32.dll")]
+        public static extern uint GetCurrentThreadId();
+
+        [DllImport("user32.dll")]
+        public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+
         private const int CRED_TYPE_GENERIC = 1;
         private const int CRED_PERSIST_LOCAL_MACHINE = 2;
+        private const int SW_RESTORE = 9;
 
+        [STAThread]
         static int Main(string[] args) {
             Console.OutputEncoding = Encoding.UTF8;
             if (args.Length == 0) {
@@ -71,6 +111,9 @@ namespace AccountHub.Security {
 
                     case "cred-list":
                         return HandleCredList(args);
+
+                    case "autologin-window":
+                        return HandleAutoLoginWindow(args);
 
                     default:
                         Console.WriteLine("{\"error\":\"Unknown command: " + EscapeJson(command) + "\"}");
@@ -290,6 +333,145 @@ namespace AccountHub.Security {
                 }
             }
             return sb.ToString();
+        }
+
+        private static int HandleAutoLoginWindow(string[] args) {
+            if (args.Length < 4) {
+                Console.WriteLine("{\"error\":\"autologin-window requires <windowPattern> <username> <credentialTarget> [timeoutSec]\"}");
+                return 1;
+            }
+
+            string windowPattern = args[1];
+            string username = args[2];
+            string credTarget = args[3];
+            int timeoutSec = 25;
+            if (args.Length > 4) {
+                int.TryParse(args[4], out timeoutSec);
+            }
+
+            // 1. Retrieve password securely from Windows Credential Manager
+            IntPtr credPtr;
+            string password = "";
+            if (CredRead(credTarget, CRED_TYPE_GENERIC, 0, out credPtr)) {
+                try {
+                    CREDENTIAL cred = (CREDENTIAL)Marshal.PtrToStructure(credPtr, typeof(CREDENTIAL));
+                    if (cred.CredentialBlobSize > 0 && cred.CredentialBlob != IntPtr.Zero) {
+                        byte[] credBytes = new byte[cred.CredentialBlobSize];
+                        Marshal.Copy(cred.CredentialBlob, credBytes, 0, cred.CredentialBlobSize);
+                        password = Encoding.Unicode.GetString(credBytes);
+                    }
+                } finally {
+                    CredFree(credPtr);
+                }
+            }
+
+            if (string.IsNullOrEmpty(password)) {
+                Console.WriteLine("{\"success\":false,\"error\":\"Credential not found in Windows Credential Manager for target: " + EscapeJson(credTarget) + "\"}");
+                return 1;
+            }
+
+            // 2. Poll for target window to appear and be visible
+            IntPtr targetHwnd = IntPtr.Zero;
+            DateTime start = DateTime.Now;
+
+            while ((DateTime.Now - start).TotalSeconds < timeoutSec) {
+                targetHwnd = FindTargetWindow(windowPattern);
+                if (targetHwnd != IntPtr.Zero) {
+                    break;
+                }
+                System.Threading.Thread.Sleep(400);
+            }
+
+            if (targetHwnd == IntPtr.Zero) {
+                Console.WriteLine("{\"success\":false,\"error\":\"Window matching '" + EscapeJson(windowPattern) + "' was not found within " + timeoutSec + "s\"}");
+                return 1;
+            }
+
+            // 3. Bring window to foreground
+            uint targetPid;
+            uint targetThread = GetWindowThreadProcessId(targetHwnd, out targetPid);
+            uint currentThread = GetCurrentThreadId();
+
+            try {
+                AttachThreadInput(currentThread, targetThread, true);
+            } catch {}
+
+            try {
+                ShowWindow(targetHwnd, SW_RESTORE);
+                SetForegroundWindow(targetHwnd);
+
+                // Wait for the window & webview to be focused and ready for input
+                System.Threading.Thread.Sleep(1200);
+
+                // Fill Username
+                Clipboard.SetText(username);
+                SendKeys.SendWait("^a");
+                System.Threading.Thread.Sleep(80);
+                SendKeys.SendWait("^v");
+                System.Threading.Thread.Sleep(150);
+
+                // Tab to Password Field
+                SendKeys.SendWait("{TAB}");
+                System.Threading.Thread.Sleep(150);
+
+                // Fill Password
+                Clipboard.SetText(password);
+                SendKeys.SendWait("^a");
+                System.Threading.Thread.Sleep(80);
+                SendKeys.SendWait("^v");
+                System.Threading.Thread.Sleep(80);
+
+                // Instantly wipe password from clipboard for security
+                Clipboard.Clear();
+                System.Threading.Thread.Sleep(150);
+
+                // Submit Login
+                SendKeys.SendWait("{ENTER}");
+
+                Console.WriteLine("{\"success\":true,\"message\":\"Automated credentials filled and login submitted successfully\"}");
+                return 0;
+            } finally {
+                try {
+                    AttachThreadInput(currentThread, targetThread, false);
+                } catch {}
+                try {
+                    Clipboard.Clear();
+                } catch {}
+            }
+        }
+
+        private static IntPtr FindTargetWindow(string pattern) {
+            IntPtr found = IntPtr.Zero;
+            EnumWindows((hWnd, lParam) => {
+                if (!IsWindowVisible(hWnd)) return true;
+
+                StringBuilder sb = new StringBuilder(256);
+                GetWindowText(hWnd, sb, 256);
+                string title = sb.ToString();
+
+                uint pid;
+                GetWindowThreadProcessId(hWnd, out pid);
+                string procName = "";
+                try {
+                    procName = Process.GetProcessById((int)pid).ProcessName;
+                } catch {}
+
+                bool titleMatch = !string.IsNullOrEmpty(title) && title.IndexOf(pattern, StringComparison.OrdinalIgnoreCase) >= 0;
+                bool procMatch = procName.IndexOf("RiotClient", StringComparison.OrdinalIgnoreCase) >= 0;
+
+                RECT r;
+                GetWindowRect(hWnd, out r);
+                int width = r.Right - r.Left;
+                int height = r.Bottom - r.Top;
+
+                if ((titleMatch || procMatch) && width > 200 && height > 200) {
+                    found = hWnd;
+                    return false;
+                }
+                return true;
+            }, IntPtr.Zero);
+
+            return found;
         }
     }
 }

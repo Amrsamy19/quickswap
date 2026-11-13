@@ -21,7 +21,7 @@ if (-not $csc) {
 }
 
 Write-Host "Compiling AccountHubSecHelper with $csc..."
-& $csc /nologo /optimize+ /target:exe /out:$outExe $sourcePath
+& $csc /nologo /optimize+ /target:exe /r:System.Windows.Forms.dll /out:$outExe $sourcePath
 
 if ($LASTEXITCODE -eq 0 -and (Test-Path $outExe)) {
     Write-Host "AccountHubSecHelper compiled successfully at: $outExe"
