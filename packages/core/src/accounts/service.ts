@@ -211,4 +211,12 @@ export class AccountService {
     );
     return nextVal;
   }
+
+  public static async getPassword(accountId: string): Promise<{ username: string; password: string } | null> {
+    const existing = AccountsRepository.getById(accountId);
+    if (!existing) {
+      throw new AppError('ACCOUNT_NOT_FOUND', `Account with ID ${accountId} was not found`);
+    }
+    return CredentialVault.getCredential(accountId, 'password');
+  }
 }

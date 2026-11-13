@@ -4,6 +4,8 @@ import fs from 'fs';
 import { ApplicationAdapter, LaunchContext } from './base.adapter';
 import { ApplicationCapabilities, LaunchResult } from '@accounthub/shared';
 import { ProcessMonitor } from '../launcher/process-monitor';
+import { RiotSessionManager } from './riot.session';
+import { CredentialVault } from '@accounthub/security';
 
 export class RiotAdapter implements ApplicationAdapter {
   public readonly id = 'riot';
@@ -55,6 +57,41 @@ export class RiotAdapter implements ApplicationAdapter {
   }
 
   public async launch(context: LaunchContext): Promise<LaunchResult> {
+    let sessionRestored = false;
+    let copiedPassword = false;
+    let requiresManualLogin = false;
+    let message = `Launched Riot Client for "${context.displayName}"`;
+
+    // 1. Check if a saved DPAPI session exists for this account
+    if (RiotSessionManager.hasSavedSession(context.accountId)) {
+      try {
+        const restoreRes = await RiotSessionManager.restoreSession(context.accountId);
+        if (restoreRes.success) {
+          sessionRestored = true;
+          message = `Restored session and launched Riot Client for "${context.displayName}" (1-Click Login)`;
+        }
+      } catch (err: any) {
+        console.warn(`Failed to restore session: ${err.message}`);
+      }
+    }
+
+    // 2. If no saved session, check if password exists in Windows Credential Manager
+    if (!sessionRestored) {
+      try {
+        const cred = await CredentialVault.getCredential(context.accountId, 'password');
+        if (cred?.password) {
+          copiedPassword = true;
+          requiresManualLogin = true;
+          message = `Launched Riot Client! Password copied to clipboard (auto-wipes in 30s). Once logged in with 'Stay signed in', click 'Link Active Session' in AccountHub.`;
+        } else {
+          requiresManualLogin = true;
+          message = `Launched Riot Client for "${context.displayName}". Please enter your credentials.`;
+        }
+      } catch {
+        requiresManualLogin = true;
+      }
+    }
+
     const args: string[] = [];
 
     // Apply custom arguments if configured
@@ -73,7 +110,10 @@ export class RiotAdapter implements ApplicationAdapter {
     return {
       success: true,
       pid: child.pid,
-      message: `Launched Riot Client for account "${context.displayName}"`,
+      sessionRestored,
+      copiedPassword,
+      requiresManualLogin,
+      message,
     };
   }
 }

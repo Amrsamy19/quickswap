@@ -14,6 +14,7 @@ import {
 import { AdapterRegistry } from '../adapters/adapter-registry';
 import { ProcessMonitor } from './process-monitor';
 import { ActivityService } from '../activity/service';
+import { RiotSessionManager } from '../adapters/riot.session';
 
 export class LauncherService {
   public static async launch(accountId: string, force: boolean = false): Promise<LaunchResult> {
@@ -51,6 +52,15 @@ export class LauncherService {
         pid: status.pid,
         message: `${application.name} is currently running. Please close it first to safely switch accounts.`,
       };
+    }
+
+    if (status.isRunning && force) {
+      if (application.adapterId === 'riot') {
+        await ProcessMonitor.killRiotClient();
+      } else if (status.pid && status.pid !== process.pid) {
+        await ProcessMonitor.killProcess(status.pid);
+        await new Promise((r) => setTimeout(r, 500));
+      }
     }
 
     // 2. Parse arguments
@@ -120,5 +130,39 @@ export class LauncherService {
 
   public static getHistory(limit: number = 20): LaunchHistoryEntry[] {
     return LaunchHistoryRepository.list(limit);
+  }
+
+  public static async captureSession(accountId: string): Promise<{ success: boolean; message: string }> {
+    const account = AccountsRepository.getById(accountId);
+    if (!account) {
+      throw new AppError('ACCOUNT_NOT_FOUND', `Account with ID ${accountId} was not found`);
+    }
+    const app = ApplicationsRepository.getById(account.applicationId);
+    if (app?.adapterId === 'riot') {
+      return RiotSessionManager.captureActiveSession(accountId);
+    }
+    return {
+      success: false,
+      message: `Session capture is not currently supported for ${app?.name || 'this application'}`,
+    };
+  }
+
+  public static hasSession(accountId: string): boolean {
+    const account = AccountsRepository.getById(accountId);
+    if (!account) return false;
+    const app = ApplicationsRepository.getById(account.applicationId);
+    if (app?.adapterId === 'riot') {
+      return RiotSessionManager.hasSavedSession(accountId);
+    }
+    return account.hasSession;
+  }
+
+  public static async clearSession(accountId: string): Promise<void> {
+    const account = AccountsRepository.getById(accountId);
+    if (!account) return;
+    const app = ApplicationsRepository.getById(account.applicationId);
+    if (app?.adapterId === 'riot') {
+      await RiotSessionManager.clearSession(accountId);
+    }
   }
 }
