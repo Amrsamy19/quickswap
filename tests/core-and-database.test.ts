@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { DatabaseConnection } from '../packages/database/src';
 import {
   ApplicationService,
@@ -11,13 +11,13 @@ import fs from 'fs';
 import path from 'path';
 
 describe('Milestone 1 & 2: Database and Application/Account Services', () => {
-  const testDbPath = path.resolve(__dirname, 'test-run.db');
+  const testDbPath = path.resolve(__dirname, 'test-core.db');
 
-  beforeEach(() => {
+  beforeAll(() => {
     DatabaseConnection.initialize(testDbPath);
   });
 
-  afterEach(() => {
+  afterAll(() => {
     DatabaseConnection.close();
     if (fs.existsSync(testDbPath)) {
       try {
