@@ -15,6 +15,7 @@ import { AdapterRegistry } from '../adapters/adapter-registry';
 import { ProcessMonitor } from './process-monitor';
 import { ActivityService } from '../activity/service';
 import { RiotSessionManager } from '../adapters/riot.session';
+import { AutoLoginService } from '@accounthub/security';
 
 export class LauncherService {
   public static async launch(accountId: string, force: boolean = false): Promise<LaunchResult> {
@@ -57,7 +58,11 @@ export class LauncherService {
     if (status.isRunning && force) {
       if (application.adapterId === 'riot') {
         await ProcessMonitor.killRiotClient();
-      } else if (status.pid && status.pid !== process.pid) {
+      } else if (
+        status.pid &&
+        status.pid !== process.pid &&
+        !application.executablePath?.toLowerCase().includes('node.exe')
+      ) {
         await ProcessMonitor.killProcess(status.pid);
         await new Promise((r) => setTimeout(r, 500));
       }
@@ -164,5 +169,27 @@ export class LauncherService {
     if (app?.adapterId === 'riot') {
       await RiotSessionManager.clearSession(accountId);
     }
+  }
+
+  public static async autoLogin(accountId: string): Promise<{ success: boolean; message: string }> {
+    const account = AccountsRepository.getById(accountId);
+    if (!account) {
+      throw new AppError('ACCOUNT_NOT_FOUND', `Account with ID ${accountId} was not found`);
+    }
+    const app = ApplicationsRepository.getById(account.applicationId);
+    const windowPattern = app?.adapterId === 'riot' ? 'Riot Client' : (app?.name || 'Client');
+    const username = account.username || account.displayName;
+
+    const res = await AutoLoginService.executeAutoLogin(windowPattern, username, accountId, 25);
+    if (res.success) {
+      ActivityService.log(
+        'credentials_saved',
+        'account',
+        accountId,
+        `Auto-login credentials filled into ${windowPattern}`
+      );
+      return { success: true, message: res.message || 'Auto-login completed!' };
+    }
+    return { success: false, message: res.error || 'Failed to auto-login' };
   }
 }

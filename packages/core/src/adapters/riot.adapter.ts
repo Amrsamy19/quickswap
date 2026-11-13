@@ -5,7 +5,7 @@ import { ApplicationAdapter, LaunchContext } from './base.adapter';
 import { ApplicationCapabilities, LaunchResult } from '@accounthub/shared';
 import { ProcessMonitor } from '../launcher/process-monitor';
 import { RiotSessionManager } from './riot.session';
-import { CredentialVault } from '@accounthub/security';
+import { CredentialVault, AutoLoginService } from '@accounthub/security';
 
 export class RiotAdapter implements ApplicationAdapter {
   public readonly id = 'riot';
@@ -58,7 +58,7 @@ export class RiotAdapter implements ApplicationAdapter {
 
   public async launch(context: LaunchContext): Promise<LaunchResult> {
     let sessionRestored = false;
-    let copiedPassword = false;
+    let autoLoginTriggered = false;
     let requiresManualLogin = false;
     let message = `Launched Riot Client for "${context.displayName}"`;
 
@@ -75,14 +75,16 @@ export class RiotAdapter implements ApplicationAdapter {
       }
     }
 
-    // 2. If no saved session, check if password exists in Windows Credential Manager
+    // 2. If no saved session (or if session needs login), check if credentials exist in Windows Credential Manager
     if (!sessionRestored) {
       try {
         const cred = await CredentialVault.getCredential(context.accountId, 'password');
-        if (cred?.password) {
-          copiedPassword = true;
-          requiresManualLogin = true;
-          message = `Launched Riot Client! Password copied to clipboard (auto-wipes in 30s). Once logged in with 'Stay signed in', click 'Link Active Session' in AccountHub.`;
+        const loginUser = context.username || cred?.username;
+        if (cred?.password && loginUser) {
+          // Trigger automated login: wait for window, focus, fill username & password, press Enter
+          AutoLoginService.triggerBackgroundAutoLogin('Riot Client', loginUser, context.accountId, 30);
+          autoLoginTriggered = true;
+          message = `Launched Riot Client with automated login for "${context.displayName}"`;
         } else {
           requiresManualLogin = true;
           message = `Launched Riot Client for "${context.displayName}". Please enter your credentials.`;
@@ -111,7 +113,7 @@ export class RiotAdapter implements ApplicationAdapter {
       success: true,
       pid: child.pid,
       sessionRestored,
-      copiedPassword,
+      autoLoginTriggered,
       requiresManualLogin,
       message,
     };
