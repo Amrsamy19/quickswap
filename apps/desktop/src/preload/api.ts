@@ -13,6 +13,9 @@ import {
   ActivityLogEntry,
   AppSettings,
   UpdateSettingsInput,
+  LaunchResult,
+  ProcessStatus,
+  LaunchHistoryEntry,
   IPC_CHANNELS,
 } from '@accounthub/shared';
 
@@ -51,6 +54,15 @@ export const accountHubAPI: AccountHubAPI = {
       ipcRenderer.invoke(IPC_CHANNELS.SECURITY_LIST_CREDENTIALS),
     verifyIntegrity: (): Promise<{ valid: boolean; issues: string[] }> =>
       ipcRenderer.invoke(IPC_CHANNELS.SECURITY_VERIFY_INTEGRITY),
+  },
+
+  launcher: {
+    launch: (accountId: string, force?: boolean): Promise<LaunchResult> =>
+      ipcRenderer.invoke(IPC_CHANNELS.LAUNCHER_LAUNCH, accountId, force),
+    getStatus: (applicationId: string): Promise<ProcessStatus> =>
+      ipcRenderer.invoke(IPC_CHANNELS.LAUNCHER_GET_STATUS, applicationId),
+    getHistory: (limit?: number): Promise<LaunchHistoryEntry[]> =>
+      ipcRenderer.invoke(IPC_CHANNELS.LAUNCHER_GET_HISTORY, limit),
   },
 
   activity: {

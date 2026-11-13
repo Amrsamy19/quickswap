@@ -5,11 +5,11 @@
   "main": "./dist-electron/main/index.js",
   "scripts": {
     "dev": "vite",
-    "build:electron": "tsc -p tsconfig.electron.json",
+    "build:electron": "vite build --config vite.config.electron.ts",
     "build:renderer": "vite build",
     "build": "pnpm build:electron && pnpm build:renderer",
     "package:win": "pnpm build && electron-builder --config electron-builder.json --win",
-    "start": "electron ."
+    "start": "node ./scripts/start.js"
   },
   "dependencies": {
     "@accounthub/core": "workspace:*",
@@ -25,7 +25,7 @@
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
-    "electron": "^34.2.0",
+    "electron": "^37.10.3",
     "postcss": "^8.5.2",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.3",

@@ -2,6 +2,7 @@ import { registerApplicationIpcHandlers } from './applications.ipc';
 import { registerAccountIpcHandlers } from './accounts.ipc';
 import { registerSecurityIpcHandlers } from './security.ipc';
 import { registerActivityIpcHandlers, registerSettingsIpcHandlers } from './activity.ipc';
+import { registerLauncherIpcHandlers } from './launcher.ipc';
 
 export function registerAllIpcHandlers(): void {
   registerApplicationIpcHandlers();
@@ -9,4 +10,5 @@ export function registerAllIpcHandlers(): void {
   registerSecurityIpcHandlers();
   registerActivityIpcHandlers();
   registerSettingsIpcHandlers();
+  registerLauncherIpcHandlers();
 }
