@@ -67,4 +67,20 @@ CREATE TABLE IF NOT EXISTS activity_logs (
 );
 
 CREATE INDEX IF NOT EXISTS idx_activity_created_at ON activity_logs(created_at DESC);
+
+-- Launch History Table
+CREATE TABLE IF NOT EXISTS launch_history (
+  id TEXT PRIMARY KEY,
+  account_id TEXT NOT NULL,
+  application_id TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'success',
+  error_message TEXT,
+  launched_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE,
+  FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_launch_history_account ON launch_history(account_id);
+CREATE INDEX IF NOT EXISTS idx_launch_history_app ON launch_history(application_id);
+CREATE INDEX IF NOT EXISTS idx_launch_history_launched_at ON launch_history(launched_at DESC);
 `;

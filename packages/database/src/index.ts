@@ -5,3 +5,4 @@ export * from './repositories/accounts.repository';
 export * from './repositories/account-secrets.repository';
 export * from './repositories/settings.repository';
 export * from './repositories/activity-log.repository';
+export * from './repositories/launch-history.repository';
