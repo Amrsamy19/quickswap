@@ -1,0 +1,18 @@
+{
+  "name": "accounthub-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AccountHub - Universal desktop account manager for Windows",
+  "scripts": {
+    "dev": "pnpm --filter @accounthub/desktop dev",
+    "build": "pnpm -r --filter \"./packages/*\" build && pnpm --filter @accounthub/desktop build",
+    "compile:sec": "powershell -ExecutionPolicy Bypass -File ./packages/security/scripts/compile-helper.ps1",
+    "test": "vitest run",
+    "typecheck": "tsc --build"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.5"
+  }
+}
