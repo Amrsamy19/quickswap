@@ -8,3 +8,7 @@ export * from './launcher/launcher-service';
 export * from './launcher/process-monitor';
 export * from './adapters/base.adapter';
 export * from './adapters/adapter-registry';
+export * from './adapters/riot.session';
+export * from './adapters/riot.adapter';
+export * from './adapters/steam.adapter';
+export * from './adapters/generic.adapter';
