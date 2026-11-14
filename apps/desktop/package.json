@@ -1,6 +1,8 @@
 {
   "name": "@accounthub/desktop",
   "version": "1.0.0",
+  "description": "AccountHub - Universal desktop account manager for Windows",
+  "author": "AccountHub Technologies",
   "private": true,
   "main": "./dist-electron/main/index.js",
   "scripts": {
@@ -26,6 +28,7 @@
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
     "electron": "^37.10.3",
+    "electron-builder": "^26.18.0",
     "postcss": "^8.5.2",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.3",

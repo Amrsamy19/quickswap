@@ -6,6 +6,7 @@ node_modules
 *.tsbuildinfo
 dist
 dist-electron
+dist-release
 out
 build
 coverage

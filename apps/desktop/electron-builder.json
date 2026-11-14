@@ -9,8 +9,7 @@
   "files": [
     "dist/**/*",
     "dist-electron/**/*",
-    "package.json",
-    "../../packages/security/bin/**/*"
+    "package.json"
   ],
   "extraResources": [
     {
