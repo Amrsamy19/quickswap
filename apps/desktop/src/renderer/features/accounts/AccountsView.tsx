@@ -531,7 +531,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
               To switch accounts safely without losing progress or causing client conflicts, we
               recommend closing the active client first.
             </p>
-            <div className="flex justify-end gap-3 pt-2">
+            <div className="flex justify-end gap-2.5 pt-2 flex-wrap">
               <button
                 onClick={() => setAlreadyRunningWarning(null)}
                 className="px-4 py-2 rounded-lg border border-slate-700 text-xs text-slate-300 hover:bg-slate-800"
@@ -542,11 +542,22 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
                 onClick={() => {
                   const id = alreadyRunningWarning.accountId;
                   setAlreadyRunningWarning(null);
+                  handleAutoLogin(id);
+                }}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/20"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Auto-Fill Active Window</span>
+              </button>
+              <button
+                onClick={() => {
+                  const id = alreadyRunningWarning.accountId;
+                  setAlreadyRunningWarning(null);
                   handleLaunch(id, true);
                 }}
                 className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold shadow-md shadow-amber-600/20"
               >
-                Launch Anyway
+                Restart Client
               </button>
             </div>
           </div>
