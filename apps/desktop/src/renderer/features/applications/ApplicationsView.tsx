@@ -10,8 +10,10 @@ import {
   Users,
   CheckCircle2,
   FolderOpen,
+  ChevronDown,
 } from 'lucide-react';
 import { RegisterAppModal } from './RegisterAppModal';
+import { AppIcon } from '../../components/AppIcon';
 
 interface ApplicationsViewProps {
   applications: Application[];
@@ -60,17 +62,20 @@ export const ApplicationsView: React.FC<ApplicationsViewProps> = ({
           </div>
 
           {/* Category Filter */}
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-3.5 py-2 rounded-xl bg-[#111827] border border-slate-800 text-xs text-slate-300 font-medium focus:outline-none focus:border-blue-500"
-          >
-            <option value="all">All Categories</option>
-            <option value="games">Games</option>
-            <option value="communication">Communication</option>
-            <option value="productivity">Productivity</option>
-            <option value="utilities">Utilities</option>
-          </select>
+          <div className="relative">
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="appearance-none pl-3.5 pr-8 py-2 rounded-xl bg-[#111827] border border-slate-800 hover:border-slate-700 text-xs text-slate-300 font-medium focus:outline-none focus:border-blue-500 cursor-pointer transition-colors shadow-sm"
+            >
+              <option value="all" className="bg-[#111827] text-white">All Categories</option>
+              <option value="games" className="bg-[#111827] text-white">Games</option>
+              <option value="communication" className="bg-[#111827] text-white">Communication</option>
+              <option value="productivity" className="bg-[#111827] text-white">Productivity</option>
+              <option value="utilities" className="bg-[#111827] text-white">Utilities</option>
+            </select>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -128,9 +133,7 @@ export const ApplicationsView: React.FC<ApplicationsViewProps> = ({
               <div>
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-slate-800 to-slate-700 border border-slate-700 flex items-center justify-center font-bold text-base text-cyan-400">
-                      {app.name.slice(0, 2).toUpperCase()}
-                    </div>
+                    <AppIcon app={app} size="lg" />
                     <div>
                       <h4 className="font-semibold text-sm text-white group-hover:text-blue-400 transition-colors">
                         {app.name}

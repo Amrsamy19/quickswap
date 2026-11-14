@@ -19,6 +19,7 @@ import {
   AlertTriangle,
   CheckCircle,
 } from 'lucide-react';
+import { AppIcon } from '../../components/AppIcon';
 
 interface DashboardViewProps {
   applications: Application[];
@@ -211,7 +212,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-blue-500/40 hover:bg-slate-800/40 transition-all cursor-pointer flex flex-col justify-between"
                   >
                     <div className="flex items-start justify-between">
-                      <div className="font-semibold text-sm text-white truncate">{app.name}</div>
+                      <div className="flex items-center gap-2 truncate">
+                        <AppIcon app={app} size="sm" />
+                        <span className="font-semibold text-sm text-white truncate">{app.name}</span>
+                      </div>
                       {app.isFavorite && <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400 flex-shrink-0" />}
                     </div>
                     <div className="flex items-center justify-between mt-3 text-[11px] text-slate-400">
@@ -255,8 +259,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800/80 flex items-center justify-between hover:bg-slate-800/40 transition-all"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center font-bold text-sm text-blue-400">
-                          {acc.displayName.slice(0, 2).toUpperCase()}
+                        <div className="relative flex-shrink-0">
+                          <div className="w-10 h-10 rounded-xl bg-blue-600/15 border border-blue-500/25 flex items-center justify-center font-bold text-xs text-blue-400">
+                            {acc.displayName.slice(0, 2).toUpperCase()}
+                          </div>
+                          {parentApp && (
+                            <div className="absolute -bottom-1 -right-1">
+                              <AppIcon app={parentApp} size="sm" className="!w-4 !h-4 !rounded-md" />
+                            </div>
+                          )}
                         </div>
                         <div>
                           <div className="font-semibold text-sm text-white flex items-center gap-2">
@@ -267,7 +278,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                               </span>
                             )}
                           </div>
-                          <div className="text-xs text-slate-400 flex items-center gap-2 mt-0.5">
+                          <div className="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5">
+                            {parentApp && <AppIcon app={parentApp} size="sm" className="!w-3.5 !h-3.5 !rounded" />}
                             <span>{parentApp?.name || 'App'}</span>
                             {acc.region && <span>• {acc.region}</span>}
                             {acc.username && <span>• {acc.username}</span>}

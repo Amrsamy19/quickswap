@@ -18,8 +18,10 @@ import {
   KeyRound,
   Sparkles,
   MoreHorizontal,
+  ChevronDown,
 } from 'lucide-react';
 import { AccountModal } from './AccountModal';
+import { AppIcon } from '../../components/AppIcon';
 
 interface AccountsViewProps {
   applications: Application[];
@@ -251,18 +253,21 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
           </div>
 
           {/* Application Filter */}
-          <select
-            value={appFilter}
-            onChange={(e) => setAppFilter(e.target.value)}
-            className="px-3.5 py-2 rounded-xl bg-[#111827] border border-slate-800 text-xs text-slate-300 font-medium focus:outline-none focus:border-blue-500"
-          >
-            <option value="all">All Applications</option>
-            {applications.map((app) => (
-              <option key={app.id} value={app.id}>
-                {app.name}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              value={appFilter}
+              onChange={(e) => setAppFilter(e.target.value)}
+              className="appearance-none pl-3.5 pr-8 py-2 rounded-xl bg-[#111827] border border-slate-800 hover:border-slate-700 text-xs text-slate-300 font-medium focus:outline-none focus:border-blue-500 cursor-pointer transition-colors shadow-sm"
+            >
+              <option value="all" className="bg-[#111827] text-white">All Applications</option>
+              {applications.map((app) => (
+                <option key={app.id} value={app.id} className="bg-[#111827] text-white">
+                  {app.name}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
 
           {/* Favorites Filter */}
           <button
@@ -346,8 +351,8 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
 
                     {/* Application */}
                     <td className="px-4 py-4 text-slate-300 font-medium whitespace-nowrap">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[11px] whitespace-nowrap">
-                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
+                      <span className="inline-flex items-center gap-2 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[11px] whitespace-nowrap">
+                        <AppIcon app={parentApp} size="sm" />
                         <span>{parentApp?.name || 'Unknown App'}</span>
                       </span>
                     </td>
