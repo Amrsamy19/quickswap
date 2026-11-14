@@ -17,7 +17,9 @@ export class NativeBridge {
     }
 
     // Try several search locations
+    const resourcesPath = (process as any).resourcesPath;
     const candidates = [
+      ...(resourcesPath ? [path.resolve(resourcesPath, 'bin/AccountHubSecHelper.exe')] : []),
       path.resolve(__dirname, '../../bin/AccountHubSecHelper.exe'),
       path.resolve(__dirname, '../bin/AccountHubSecHelper.exe'),
       path.resolve(__dirname, '../../../packages/security/bin/AccountHubSecHelper.exe'),
