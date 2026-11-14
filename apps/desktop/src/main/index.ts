@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, Menu } from 'electron';
 import path from 'path';
 import { DatabaseConnection } from '@accounthub/database';
 import { ApplicationService } from '@accounthub/core';
@@ -7,12 +7,16 @@ import { registerAllIpcHandlers } from './ipc';
 let mainWindow: BrowserWindow | null = null;
 
 function createWindow(): void {
+  // Hide standard Electron application menu bar (File, Edit, View, Window, Help)
+  Menu.setApplicationMenu(null);
+
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
     minWidth: 960,
     minHeight: 640,
     backgroundColor: '#0B0F17',
+    autoHideMenuBar: true,
     show: false,
     webPreferences: {
       preload: path.join(__dirname, '../preload/index.js'),

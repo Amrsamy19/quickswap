@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Application, Account } from '@accounthub/shared';
 import {
   Users,
@@ -17,6 +17,7 @@ import {
   Check,
   KeyRound,
   Sparkles,
+  MoreHorizontal,
 } from 'lucide-react';
 import { AccountModal } from './AccountModal';
 
@@ -78,6 +79,29 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
     message: string;
     isError?: boolean;
   } | null>(null);
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setActiveMenuId(null);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setActiveMenuId(null);
+      }
+    };
+    if (activeMenuId) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [activeMenuId]);
 
   const api = typeof window !== 'undefined' ? window.accountHubAPI : null;
 
@@ -253,14 +277,6 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
             <span>Favorites</span>
           </button>
         </div>
-
-        <button
-          onClick={handleCreate}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white shadow-md shadow-blue-500/20 transition-all cursor-pointer"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>Add Account</span>
-        </button>
       </div>
 
       {/* Account Table / Cards */}
@@ -288,11 +304,11 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
             <thead className="bg-slate-900/60 border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider text-[10px]">
               <tr>
                 <th className="px-6 py-3.5">Account</th>
-                <th className="px-4 py-3.5">Application</th>
-                <th className="px-4 py-3.5">Region</th>
-                <th className="px-4 py-3.5">Auth Mode</th>
-                <th className="px-4 py-3.5">Vault Status</th>
-                <th className="px-6 py-3.5 text-right">Actions</th>
+                <th className="px-4 py-3.5 whitespace-nowrap min-w-[140px]">Application</th>
+                <th className="px-4 py-3.5 whitespace-nowrap min-w-[80px]">Region</th>
+                <th className="px-4 py-3.5 whitespace-nowrap min-w-[100px]">Auth Mode</th>
+                <th className="px-4 py-3.5 whitespace-nowrap min-w-[130px]">Vault Status</th>
+                <th className="px-6 py-3.5 text-right whitespace-nowrap min-w-[210px]">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
@@ -329,105 +345,83 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
                     </td>
 
                     {/* Application */}
-                    <td className="px-4 py-4 text-slate-300 font-medium">
-                      <span className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[11px]">
-                        {parentApp?.name || 'Unknown App'}
+                    <td className="px-4 py-4 text-slate-300 font-medium whitespace-nowrap">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[11px] whitespace-nowrap">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
+                        <span>{parentApp?.name || 'Unknown App'}</span>
                       </span>
                     </td>
 
                     {/* Region */}
-                    <td className="px-4 py-4 text-slate-300 font-mono text-[11px]">
+                    <td className="px-4 py-4 text-slate-400 font-mono text-[11px] whitespace-nowrap">
                       {acc.region || '—'}
                     </td>
 
                     {/* Auth Mode */}
-                    <td className="px-4 py-4">
-                      <span className="capitalize px-2 py-0.5 rounded-md bg-slate-800/80 text-slate-300 text-[11px] font-medium">
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <span className="capitalize px-2 py-0.5 rounded-md bg-slate-800/80 text-slate-300 text-[11px] font-medium whitespace-nowrap">
                         {acc.authMethod}
                       </span>
                     </td>
 
                     {/* Vault & Session Status */}
-                    <td className="px-4 py-4">
+                    <td className="px-4 py-4 whitespace-nowrap">
                       {acc.hasSession ? (
-                        <div className="flex flex-col gap-0.5">
-                          <span className="inline-flex items-center gap-1.5 text-emerald-400 font-medium text-[11px]">
-                            <Zap className="w-3.5 h-3.5 fill-emerald-400 text-emerald-400" />
-                            <span>1-Click Ready</span>
+                        <span
+                          title="1-Click Ready: DPAPI session paired and verified. Instant launch without login prompts."
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-[11px] font-medium whitespace-nowrap shadow-sm shadow-emerald-500/5"
+                        >
+                          <span className="relative flex h-2 w-2 flex-shrink-0">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                           </span>
-                          <span className="text-[10px] text-slate-500">DPAPI Session</span>
-                        </div>
+                          <span>1-Click Ready</span>
+                        </span>
                       ) : acc.hasCredentials ? (
-                        <div className="flex flex-col gap-0.5">
-                          <span className="inline-flex items-center gap-1.5 text-blue-400 font-medium text-[11px]">
-                            <Shield className="w-3.5 h-3.5" />
-                            <span>WinCred Saved</span>
-                          </span>
-                          {parentApp?.adapterId === 'riot' && (
-                            <span className="text-[10px] text-amber-400/90 font-medium">Link session for 1-click</span>
-                          )}
-                        </div>
+                        <span
+                          title="Credentials secured in Windows Credential Manager. Auto-fills credentials on launch."
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/25 text-blue-400 text-[11px] font-medium whitespace-nowrap shadow-sm shadow-blue-500/5"
+                        >
+                          <Shield className="w-3 h-3 text-blue-400 flex-shrink-0" />
+                          <span>Credentials</span>
+                        </span>
                       ) : (
-                        <span className="text-slate-500 text-[11px]">Manual / Unset</span>
+                        <span
+                          title="No stored session or credentials."
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-800/50 border border-slate-700/40 text-slate-400 text-[11px] font-medium whitespace-nowrap"
+                        >
+                          <span>Manual</span>
+                        </span>
                       )}
                     </td>
 
                     {/* Actions */}
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
+                    <td className="px-6 py-4 text-right whitespace-nowrap">
+                      <div className="flex items-center justify-end gap-1.5 relative">
                         {/* Launch Account */}
                         <button
                           onClick={() => handleLaunch(acc.id)}
                           disabled={launchingId === acc.id}
                           title="Launch Application With This Account"
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm shadow-emerald-600/20 transition-all cursor-pointer mr-1 disabled:opacity-50"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-medium text-xs shadow-sm shadow-emerald-600/20 transition-all cursor-pointer disabled:opacity-50"
                         >
                           <Play className={`w-3 h-3 fill-current ${launchingId === acc.id ? 'animate-spin' : ''}`} />
                           <span>{launchingId === acc.id ? 'Starting...' : 'Launch'}</span>
                         </button>
 
-                        {/* Link / Re-link Riot Session */}
-                        {parentApp?.adapterId === 'riot' && (
-                          <button
-                            onClick={() => handleCaptureSession(acc.id)}
-                            disabled={capturingSessionId === acc.id}
-                            title={
-                              acc.hasSession
-                                ? 'Session linked! Click to refresh active Riot Client session'
-                                : 'Link current Riot Client login for instant 1-click launch'
-                            }
-                            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                              acc.hasSession
-                                ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/30'
-                                : 'bg-amber-500/15 text-amber-400 hover:bg-amber-500/25 border border-amber-500/30 shadow-sm shadow-amber-500/10'
-                            }`}
-                          >
-                            <Zap className={`w-3 h-3 ${acc.hasSession ? 'fill-current' : ''}`} />
-                            <span>{acc.hasSession ? 'Linked' : 'Link Session'}</span>
-                          </button>
-                        )}
-
-                        {/* Auto-Fill & Log In Button */}
-                        {acc.hasCredentials && (
-                          <button
-                            onClick={() => handleAutoLogin(acc.id)}
-                            title="Auto-fill credentials into active window and submit login"
-                            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/25 text-xs font-semibold transition-all cursor-pointer shadow-sm shadow-indigo-500/10"
-                          >
-                            <Sparkles className="w-3 h-3 text-indigo-400" />
-                            <span>Auto-Fill</span>
-                          </button>
-                        )}
-
                         {/* Copy Password with 30s auto-wipe */}
                         {acc.hasCredentials && (
                           <button
                             onClick={() => handleCopyPassword(acc.id)}
-                            title="Copy Password (auto-wipes in 30s)"
-                            className={`p-1.5 rounded-lg transition-colors ${
+                            title={
+                              copiedAccountId === acc.id
+                                ? 'Password copied! (auto-wipes in 30s)'
+                                : 'Copy Password (auto-wipes in 30s)'
+                            }
+                            className={`p-1.5 rounded-lg transition-all cursor-pointer ${
                               copiedAccountId === acc.id
                                 ? 'text-emerald-400 bg-emerald-500/20 border border-emerald-500/30'
-                                : 'text-slate-500 hover:text-slate-200 hover:bg-slate-800'
+                                : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/80 border border-transparent'
                             }`}
                           >
                             {copiedAccountId === acc.id ? (
@@ -441,44 +435,107 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
                         {/* Toggle Favorite */}
                         <button
                           onClick={() => onToggleFavorite(acc.id)}
-                          title={acc.isFavorite ? 'Unfavorite' : 'Mark Favorite'}
-                          className={`p-1.5 rounded-lg transition-colors ${
+                          title={acc.isFavorite ? 'Remove from favorites' : 'Mark as favorite'}
+                          className={`p-1.5 rounded-lg transition-all cursor-pointer ${
                             acc.isFavorite
-                              ? 'text-amber-400 bg-amber-500/10'
-                              : 'text-slate-500 hover:text-amber-400 hover:bg-slate-800'
+                              ? 'text-amber-400 bg-amber-500/10 hover:bg-amber-500/20'
+                              : 'text-slate-400 hover:text-amber-400 hover:bg-slate-800/80'
                           }`}
                         >
                           <Star className={`w-3.5 h-3.5 ${acc.isFavorite ? 'fill-amber-400' : ''}`} />
                         </button>
 
-                        {/* Set Default */}
-                        {!acc.isDefault && (
-                          <button
-                            onClick={() => onSetDefault(acc.id)}
-                            title="Set as Default Account"
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-amber-400 hover:bg-slate-800 transition-colors"
-                          >
-                            <Crown className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-
-                        {/* Edit */}
+                        {/* Edit Account */}
                         <button
                           onClick={() => handleEdit(acc)}
-                          title="Edit Account"
-                          className="p-1.5 rounded-lg text-slate-500 hover:text-blue-400 hover:bg-slate-800 transition-colors"
+                          title="Edit Account Details"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-blue-400 hover:bg-slate-800/80 transition-all cursor-pointer"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
 
-                        {/* Delete */}
-                        <button
-                          onClick={() => setDeleteConfirmId(acc.id)}
-                          title="Delete Account & Wipe Secrets"
-                          className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        {/* More Actions Menu */}
+                        <div className="relative inline-block text-left">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveMenuId(activeMenuId === acc.id ? null : acc.id);
+                            }}
+                            title="More Actions"
+                            className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+                              activeMenuId === acc.id
+                                ? 'text-white bg-slate-700'
+                                : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/80'
+                            }`}
+                          >
+                            <MoreHorizontal className="w-3.5 h-3.5" />
+                          </button>
+
+                          {activeMenuId === acc.id && (
+                            <div
+                              ref={menuRef}
+                              className="absolute right-0 top-full mt-1.5 w-56 rounded-xl bg-[#161F30] border border-slate-700 shadow-2xl z-40 py-1 text-left divide-y divide-slate-800 animate-in fade-in zoom-in-95 duration-100"
+                            >
+                              <div className="py-1">
+                                {parentApp?.adapterId === 'riot' && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setActiveMenuId(null);
+                                      handleCaptureSession(acc.id);
+                                    }}
+                                    className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs text-slate-200 hover:bg-slate-700/60 hover:text-white transition-colors cursor-pointer"
+                                  >
+                                    <Zap className={`w-3.5 h-3.5 ${acc.hasSession ? 'text-emerald-400 fill-emerald-400' : 'text-amber-400'}`} />
+                                    <span>{acc.hasSession ? 'Re-sync Riot Session' : 'Link Active Riot Session'}</span>
+                                  </button>
+                                )}
+
+                                {acc.hasCredentials && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setActiveMenuId(null);
+                                      handleAutoLogin(acc.id);
+                                    }}
+                                    className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs text-slate-200 hover:bg-slate-700/60 hover:text-white transition-colors cursor-pointer"
+                                  >
+                                    <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                                    <span>Auto-Fill Active Window</span>
+                                  </button>
+                                )}
+
+                                {!acc.isDefault && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setActiveMenuId(null);
+                                      onSetDefault(acc.id);
+                                    }}
+                                    className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs text-slate-200 hover:bg-slate-700/60 hover:text-white transition-colors cursor-pointer"
+                                  >
+                                    <Crown className="w-3.5 h-3.5 text-amber-400" />
+                                    <span>Set as Default Launch</span>
+                                  </button>
+                                )}
+                              </div>
+
+                              <div className="py-1">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setActiveMenuId(null);
+                                    setDeleteConfirmId(acc.id);
+                                  }}
+                                  className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs text-rose-400 hover:bg-rose-500/15 transition-colors cursor-pointer"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+                                  <span>Delete Account...</span>
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </td>
                   </tr>
