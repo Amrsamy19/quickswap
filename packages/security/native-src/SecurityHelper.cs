@@ -400,12 +400,14 @@ namespace AccountHub.Security {
                 ShowWindow(targetHwnd, SW_RESTORE);
                 SetForegroundWindow(targetHwnd);
 
-                // Wait for the window & webview to be focused and ready for input
-                System.Threading.Thread.Sleep(1200);
+                // Wait 2200ms for webview to render input fields
+                System.Threading.Thread.Sleep(2200);
 
                 // Fill Username
                 Clipboard.SetText(username);
                 SendKeys.SendWait("^a");
+                System.Threading.Thread.Sleep(80);
+                SendKeys.SendWait("{BACKSPACE}");
                 System.Threading.Thread.Sleep(80);
                 SendKeys.SendWait("^v");
                 System.Threading.Thread.Sleep(150);
@@ -418,12 +420,14 @@ namespace AccountHub.Security {
                 Clipboard.SetText(password);
                 SendKeys.SendWait("^a");
                 System.Threading.Thread.Sleep(80);
+                SendKeys.SendWait("{BACKSPACE}");
+                System.Threading.Thread.Sleep(80);
                 SendKeys.SendWait("^v");
                 System.Threading.Thread.Sleep(80);
 
                 // Instantly wipe password from clipboard for security
                 Clipboard.Clear();
-                System.Threading.Thread.Sleep(150);
+                System.Threading.Thread.Sleep(200);
 
                 // Submit Login
                 SendKeys.SendWait("{ENTER}");
@@ -456,15 +460,21 @@ namespace AccountHub.Security {
                     procName = Process.GetProcessById((int)pid).ProcessName;
                 } catch {}
 
-                bool titleMatch = !string.IsNullOrEmpty(title) && title.IndexOf(pattern, StringComparison.OrdinalIgnoreCase) >= 0;
-                bool procMatch = procName.IndexOf("RiotClient", StringComparison.OrdinalIgnoreCase) >= 0;
+                string lowerTitle = title.ToLowerInvariant();
+                string lowerProc = procName.ToLowerInvariant();
+                string lowerPattern = pattern.ToLowerInvariant();
+
+                bool isRiot = lowerPattern.Contains("riot") || lowerPattern.Contains("league") || lowerPattern.Contains("valorant");
+                bool titleMatch = !string.IsNullOrEmpty(title) && (lowerTitle.Contains(lowerPattern) || (isRiot && lowerTitle.Contains("riot")));
+                bool procMatch = isRiot && (lowerProc.Contains("riot") || lowerProc.Contains("riot client") || lowerProc.Contains("riotclientservices"));
 
                 RECT r;
                 GetWindowRect(hWnd, out r);
                 int width = r.Right - r.Left;
                 int height = r.Bottom - r.Top;
 
-                if ((titleMatch || procMatch) && width > 200 && height > 200) {
+                // Window must be a real rendered window of substantial size
+                if ((titleMatch || procMatch) && width >= 400 && height >= 350) {
                     found = hWnd;
                     return false;
                 }
