@@ -150,12 +150,13 @@ rso-authenticator:
     expect(restoredContent).toContain('mock_session_cookie_string');
   });
 
-  it('launches Riot Client with sessionRestored=true when session is paired', async () => {
+  it('launches Riot Client with sessionRestored=true and autoLoginTriggered=true when session and credentials are paired', async () => {
     // Launch with force=true
     const result = await LauncherService.launch(testAccountId, true);
     expect(result.success).toBe(true);
     expect(result.sessionRestored).toBe(true);
-    expect(result.message).toContain('1-Click Login');
+    expect(result.autoLoginTriggered).toBe(true);
+    expect(result.message).toContain('automatic login');
   });
 
   it('unlinks and clears session cleanly', async () => {

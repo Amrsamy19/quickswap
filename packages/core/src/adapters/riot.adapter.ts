@@ -68,28 +68,28 @@ export class RiotAdapter implements ApplicationAdapter {
         const restoreRes = await RiotSessionManager.restoreSession(context.accountId);
         if (restoreRes.success) {
           sessionRestored = true;
-          message = `Restored session and launched Riot Client for "${context.displayName}" (1-Click Login)`;
+          message = `Restored session and launched Riot Client for "${context.displayName}"`;
         }
       } catch (err: any) {
         console.warn(`Failed to restore session: ${err.message}`);
       }
     }
 
-    // 2. If no saved session (or if session needs login), check if credentials exist in Windows Credential Manager
-    if (!sessionRestored) {
-      try {
-        const cred = await CredentialVault.getCredential(context.accountId, 'password');
-        const loginUser = context.username || cred?.username;
-        if (cred?.password && loginUser) {
-          // Trigger automated login: wait for window, focus, fill username & password, press Enter
-          AutoLoginService.triggerBackgroundAutoLogin('Riot Client', loginUser, context.accountId, 30);
-          autoLoginTriggered = true;
-          message = `Launched Riot Client with automated login for "${context.displayName}"`;
-        } else {
-          requiresManualLogin = true;
-          message = `Launched Riot Client for "${context.displayName}". Please enter your credentials.`;
-        }
-      } catch {
+    // 2. Always arm automated login when credentials are saved
+    try {
+      const cred = await CredentialVault.getCredential(context.accountId, 'password');
+      const loginUser = context.username || cred?.username;
+      if (cred?.password && loginUser) {
+        // Trigger automated login: wait for window, focus, fill username & password, press Enter
+        AutoLoginService.triggerBackgroundAutoLogin('Riot Client', loginUser, context.accountId, 35);
+        autoLoginTriggered = true;
+        message = `Launched Riot Client with automatic login for "${context.displayName}"`;
+      } else if (!sessionRestored) {
+        requiresManualLogin = true;
+        message = `Launched Riot Client for "${context.displayName}". Please enter your credentials.`;
+      }
+    } catch {
+      if (!sessionRestored) {
         requiresManualLogin = true;
       }
     }
