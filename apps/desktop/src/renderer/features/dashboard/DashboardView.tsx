@@ -158,7 +158,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               return (
                 <div
                   key={acc.id}
-                  className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 hover:border-blue-500/40 hover:bg-slate-900/90 transition-all flex flex-col justify-between group"
+                  className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 hover:border-blue-500/50 hover:bg-slate-900/95 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10 active:translate-y-0 transition-all duration-200 ease-out flex flex-col justify-between group cursor-default"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3 min-w-0">
@@ -222,7 +222,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         handleLaunch(acc.id);
                       }}
                       disabled={isLaunching}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs font-semibold shadow-md shadow-blue-500/20 transition-all cursor-pointer disabled:opacity-50"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs font-semibold shadow-md shadow-blue-500/20 hover:shadow-blue-500/40 transition-all duration-150 cursor-pointer disabled:opacity-50"
                     >
                       <Play className={`w-3 h-3 fill-current ${isLaunching ? 'animate-spin' : ''}`} />
                       <span>{isLaunching ? 'Launching...' : 'Launch'}</span>
@@ -262,7 +262,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <div
                   key={app.id}
                   onClick={() => onNavigateToAccounts(app.id)}
-                  className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-blue-500/40 hover:bg-slate-800/40 transition-all cursor-pointer flex flex-col justify-between"
+                  className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-cyan-500/50 hover:bg-slate-800/60 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-cyan-500/5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 cursor-pointer flex flex-col justify-between group"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2 truncate">

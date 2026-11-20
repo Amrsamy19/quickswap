@@ -56,7 +56,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
             <button
               onClick={onOpenUnlockModal}
               title="Vault is locked. Click to unlock"
-              className="hidden md:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/40 text-[10px] text-amber-300 hover:bg-amber-500/20 transition-all cursor-pointer shadow-sm shadow-amber-500/10"
+              className="hidden md:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-[10px] text-amber-300 hover:bg-amber-500/20 transition-all cursor-pointer focus:outline-none focus:ring-0"
             >
               <Lock className="w-3 h-3 text-amber-400" />
               <span className="font-medium">Vault: Locked</span>
@@ -65,7 +65,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
             <button
               onClick={onLockVault}
               title="Vault is unlocked. Click to lock"
-              className="hidden md:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[10px] text-emerald-300 hover:bg-emerald-500/20 transition-all cursor-pointer"
+              className="hidden md:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[10px] text-emerald-300 hover:bg-emerald-500/20 transition-all cursor-pointer focus:outline-none focus:ring-0"
             >
               <ShieldCheck className="w-3 h-3 text-emerald-400" />
               <span>Vault: Unlocked</span>
@@ -75,7 +75,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
           <button
             onClick={onOpenUnlockModal}
             title="Click to set a Master Password"
-            className="hidden md:flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-[10px] text-slate-300 hover:border-slate-700 transition-all cursor-pointer"
+            className="hidden md:flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-[10px] text-slate-300 hover:border-slate-700 transition-all cursor-pointer focus:outline-none focus:ring-0"
           >
             <span className={`w-1.5 h-1.5 rounded-full ${vaultHealthy ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
             <span>{vaultHealthy ? 'Vault Hardware-Secured' : 'Degraded'}</span>
@@ -87,7 +87,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
       <div className="flex-1 max-w-sm mx-4 no-drag">
         <button
           onClick={onOpenCommandPalette}
-          className="w-full flex items-center justify-between px-3 py-1 rounded-lg bg-slate-900/80 border border-slate-800/90 text-slate-400 hover:text-slate-200 hover:border-slate-700 transition-all text-xs"
+          className="w-full flex items-center justify-between px-3 py-1 rounded-lg bg-slate-900/80 border border-slate-800/90 text-slate-400 hover:text-slate-200 hover:border-slate-700 transition-all text-xs focus:outline-none focus:ring-0"
         >
           <div className="flex items-center gap-2">
             <Search className="w-3.5 h-3.5 text-slate-500" />
@@ -104,14 +104,15 @@ export const TitleBar: React.FC<TitleBarProps> = ({
         {/* Streamer Privacy Mode Button */}
         <button
           onClick={onTogglePrivacyMode}
+          onMouseDown={(e) => e.preventDefault()}
           title={privacyMode ? 'Disable Streamer Privacy Mode (Ctrl+Shift+P)' : 'Enable Streamer Privacy Mode (Ctrl+Shift+P)'}
           className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
             privacyMode
-              ? 'bg-amber-500/20 border border-amber-500/40 text-amber-300 shadow-sm shadow-amber-500/10'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+              ? 'bg-blue-600/20 border border-blue-500/30 text-cyan-300 shadow-sm shadow-blue-500/10'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border border-transparent'
           }`}
         >
-          {privacyMode ? <EyeOff className="w-3.5 h-3.5 text-amber-400" /> : <Eye className="w-3.5 h-3.5 text-slate-400" />}
+          {privacyMode ? <EyeOff className="w-3.5 h-3.5 text-cyan-400" /> : <Eye className="w-3.5 h-3.5 text-slate-400" />}
           <span className="text-[11px] hidden lg:inline">
             {privacyMode ? 'Privacy: Active' : 'Privacy Mode'}
           </span>
@@ -121,6 +122,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
         <div className="flex items-center ml-2 border-l border-slate-800/80 pl-2">
           <button
             onClick={handleMinimize}
+            onMouseDown={(e) => e.preventDefault()}
             className="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
             title="Minimize"
           >
@@ -128,6 +130,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
           </button>
           <button
             onClick={handleMaximize}
+            onMouseDown={(e) => e.preventDefault()}
             className="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
             title={isMaximized ? 'Restore' : 'Maximize'}
           >
@@ -135,6 +138,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
           </button>
           <button
             onClick={handleClose}
+            onMouseDown={(e) => e.preventDefault()}
             className="w-7 h-7 flex items-center justify-center rounded hover:bg-rose-600 text-slate-400 hover:text-white transition-colors"
             title="Close"
           >

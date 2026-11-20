@@ -19,9 +19,9 @@ export const Modal: React.FC<ModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-backdrop-enter">
       <div
-        className={`w-full ${maxWidth} bg-[#111827] border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]`}
+        className={`w-full ${maxWidth} bg-[#111827] border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-modal-enter`}
       >
         <div className="px-6 py-4 border-b border-slate-800/80 flex items-center justify-between bg-slate-900/40">
           <h2 className="text-base font-semibold text-white">{title}</h2>

@@ -304,73 +304,75 @@ export const App: React.FC = () => {
           />
 
           <main className="flex-1 overflow-y-auto p-8">
-            {currentTab === 'dashboard' && (
-              <DashboardView
-                applications={applications}
-                accounts={accounts}
-                securityStatus={securityStatus}
-                activities={activities}
-                onNavigateToAccounts={(appId) => {
-                  setSelectedAppId(appId);
-                  setCurrentTab('accounts');
-                }}
-                onNavigateToApplications={() => setCurrentTab('applications')}
-                onNavigateToSecurity={() => setCurrentTab('security')}
-                onLaunchAccount={handleLaunchAccount}
-              />
-            )}
+            <div key={currentTab} className="animate-tab-enter">
+              {currentTab === 'dashboard' && (
+                <DashboardView
+                  applications={applications}
+                  accounts={accounts}
+                  securityStatus={securityStatus}
+                  activities={activities}
+                  onNavigateToAccounts={(appId) => {
+                    setSelectedAppId(appId);
+                    setCurrentTab('accounts');
+                  }}
+                  onNavigateToApplications={() => setCurrentTab('applications')}
+                  onNavigateToSecurity={() => setCurrentTab('security')}
+                  onLaunchAccount={handleLaunchAccount}
+                />
+              )}
 
-            {currentTab === 'applications' && (
-              <ApplicationsView
-                applications={applications}
-                onRegisterApplication={handleRegisterApplication}
-                onRemoveApplication={handleRemoveApplication}
-                onScanInstalled={handleScanInstalled}
-                onSelectApplication={(id) => {
-                  setSelectedAppId(id);
-                  setCurrentTab('accounts');
-                }}
-                scanning={scanning}
-              />
-            )}
+              {currentTab === 'applications' && (
+                <ApplicationsView
+                  applications={applications}
+                  onRegisterApplication={handleRegisterApplication}
+                  onRemoveApplication={handleRemoveApplication}
+                  onScanInstalled={handleScanInstalled}
+                  onSelectApplication={(id) => {
+                    setSelectedAppId(id);
+                    setCurrentTab('accounts');
+                  }}
+                  scanning={scanning}
+                />
+              )}
 
-            {currentTab === 'accounts' && (
-              <AccountsView
-                applications={applications}
-                accounts={accounts}
-                selectedAppId={selectedAppId}
-                onCreateAccount={handleCreateAccount}
-                onUpdateAccount={handleUpdateAccount}
-                onDeleteAccount={handleDeleteAccount}
-                onSetDefault={handleSetDefault}
-                onToggleFavorite={handleToggleFavorite}
-                onLaunchAccount={handleLaunchAccount}
-                onRefreshData={loadData}
-              />
-            )}
+              {currentTab === 'accounts' && (
+                <AccountsView
+                  applications={applications}
+                  accounts={accounts}
+                  selectedAppId={selectedAppId}
+                  onCreateAccount={handleCreateAccount}
+                  onUpdateAccount={handleUpdateAccount}
+                  onDeleteAccount={handleDeleteAccount}
+                  onSetDefault={handleSetDefault}
+                  onToggleFavorite={handleToggleFavorite}
+                  onLaunchAccount={handleLaunchAccount}
+                  onRefreshData={loadData}
+                />
+              )}
 
-            {currentTab === 'security' && (
-              <SecurityCenterView
-                status={securityStatus}
-                credentials={credentials}
-                onRefresh={loadData}
-                onVerifyIntegrity={handleVerifyIntegrity}
-              />
-            )}
+              {currentTab === 'security' && (
+                <SecurityCenterView
+                  status={securityStatus}
+                  credentials={credentials}
+                  onRefresh={loadData}
+                  onVerifyIntegrity={handleVerifyIntegrity}
+                />
+              )}
 
-            {currentTab === 'activity' && (
-              <ActivityView activities={activities} onClear={handleClearActivity} />
-            )}
+              {currentTab === 'activity' && (
+                <ActivityView activities={activities} onClear={handleClearActivity} />
+              )}
 
-            {currentTab === 'settings' && (
-              <SettingsView
-                settings={settings}
-                onUpdate={handleUpdateSettings}
-                vaultLockStatus={vaultLockStatus}
-                onConfigureMasterPassword={() => setIsUnlockModalOpen(true)}
-                onLockVault={handleLockVault}
-              />
-            )}
+              {currentTab === 'settings' && (
+                <SettingsView
+                  settings={settings}
+                  onUpdate={handleUpdateSettings}
+                  vaultLockStatus={vaultLockStatus}
+                  onConfigureMasterPassword={() => setIsUnlockModalOpen(true)}
+                  onLockVault={handleLockVault}
+                />
+              )}
+            </div>
           </main>
         </div>
       </div>

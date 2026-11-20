@@ -25,7 +25,7 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="h-12 px-6 border-b border-slate-800/80 bg-[#0B0F17]/60 backdrop-blur flex items-center justify-between flex-shrink-0 z-10">
       {/* Title & Compact Meta */}
-      <div className="flex items-center gap-3 min-w-0">
+      <div key={title} className="flex items-center gap-3 min-w-0 animate-header-fade">
         <h1 className="text-sm font-bold text-white tracking-tight truncate">{title}</h1>
         {stats && (
           <div className="hidden sm:flex items-center gap-2 text-[11px] text-slate-400 border-l border-slate-800 pl-3">
@@ -48,6 +48,7 @@ export const Header: React.FC<HeaderProps> = ({
         {onScanApps && (
           <button
             onClick={onScanApps}
+            onMouseDown={(e) => e.preventDefault()}
             disabled={scanning}
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-700/80 bg-slate-800/50 hover:bg-slate-700/70 text-xs font-medium text-slate-200 transition-all cursor-pointer disabled:opacity-50"
           >
@@ -59,6 +60,7 @@ export const Header: React.FC<HeaderProps> = ({
         {onAddAccount && (
           <button
             onClick={onAddAccount}
+            onMouseDown={(e) => e.preventDefault()}
             className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs font-semibold shadow-sm shadow-blue-500/20 transition-all cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />

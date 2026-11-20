@@ -2,6 +2,43 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ==========================================================================
+   Universal Outline & Focus Ring Elimination (Strict Global Override)
+   ========================================================================== */
+*,
+*::before,
+*::after,
+*:focus,
+*:focus-visible,
+*:focus-within,
+button,
+button:focus,
+button:focus-visible,
+input:focus,
+input:focus-visible,
+select:focus,
+select:focus-visible,
+textarea:focus,
+textarea:focus-visible,
+a:focus,
+a:focus-visible,
+[role="button"]:focus,
+[role="button"]:focus-visible,
+[tabindex]:focus,
+[tabindex]:focus-visible,
+.focus\:outline-none:focus,
+.focus-visible\:outline-none:focus-visible,
+.outline-none,
+.focus\:outline-none {
+  outline: none !important;
+  outline-width: 0 !important;
+  outline-style: none !important;
+  outline-color: transparent !important;
+  outline-offset: 0 !important;
+  -webkit-focus-ring-color: transparent !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
 @layer base {
   body {
     @apply bg-[#0B0F17] text-slate-100 select-none antialiased;
@@ -38,9 +75,100 @@
 .privacy-mode .sensitive-text {
   filter: blur(5px);
   user-select: none;
-  transition: filter 0.2s ease-in-out;
+  transition: filter 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .privacy-mode .sensitive-text:hover {
-  filter: blur(2px);
+  filter: blur(1.5px);
 }
+
+/* Custom Smooth Animation Classes */
+@keyframes modalEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes backdropEnter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes toastSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes subtlePulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-modal-enter {
+  animation: modalEnter 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-backdrop-enter {
+  animation: backdropEnter 0.2s ease-out forwards;
+}
+
+.animate-toast-enter {
+  animation: toastSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Tab Switching Animation */
+@keyframes tabEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-tab-enter {
+  animation: tabEnter 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes headerFade {
+  0% {
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-header-fade {
+  animation: headerFade 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Sidebar Spring Transition Curve */
+.sidebar-smooth-transition {
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+

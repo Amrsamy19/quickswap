@@ -30,7 +30,7 @@ export const UndoToast: React.FC<UndoToastProps> = ({
   }, [secondsLeft, onTimeout]);
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-4 duration-200">
+    <div className="fixed bottom-6 right-6 z-50 animate-toast-enter">
       <div className="bg-[#161F30] border border-blue-500/40 shadow-2xl shadow-blue-900/30 rounded-xl px-4 py-3 flex items-center gap-4 text-white">
         <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 flex-shrink-0">
           <AlertCircle className="w-4 h-4" />
