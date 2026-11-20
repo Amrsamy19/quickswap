@@ -12,12 +12,21 @@ function createWindow(): void {
   // Hide standard Electron application menu bar (File, Edit, View, Window, Help)
   Menu.setApplicationMenu(null);
 
+  const iconCandidates = [
+    path.resolve(__dirname, '../../resources/icon.ico'),
+    path.resolve(__dirname, '../../resources/icon.png'),
+    path.resolve(process.resourcesPath || '', 'icon.ico'),
+    path.resolve(process.resourcesPath || '', 'icon.png'),
+  ];
+  const iconPath = iconCandidates.find((p) => fs.existsSync(p));
+
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
     minWidth: 960,
     minHeight: 640,
     backgroundColor: '#0B0F17',
+    icon: iconPath,
     frame: false, // Frameless custom window bar for modern gaming/security UI
     titleBarStyle: 'hidden',
     autoHideMenuBar: true,

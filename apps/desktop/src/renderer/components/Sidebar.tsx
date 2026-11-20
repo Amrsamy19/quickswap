@@ -56,11 +56,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
             isCollapsed ? 'justify-center' : 'justify-between px-2'
           } py-2 mb-4`}
         >
-          {!isCollapsed && (
+          {!isCollapsed ? (
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-400 flex items-center justify-center shadow-md shadow-blue-500/20 flex-shrink-0">
-                <Shield className="w-4 h-4 text-white" />
-              </div>
+              <img src="/icon.svg" alt="Quickswap" className="w-8 h-8 rounded-lg shadow-md shadow-blue-500/20 flex-shrink-0" />
               <div className="min-w-0">
                 <div className="font-bold text-sm tracking-tight text-white truncate">
                   Quickswap
@@ -70,6 +68,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </div>
               </div>
             </div>
+          ) : (
+            <img src="/icon.svg" alt="Quickswap" className="w-7 h-7 rounded-lg shadow-sm shadow-blue-500/20" />
           )}
 
           <button
