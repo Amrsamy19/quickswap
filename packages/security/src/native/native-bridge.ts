@@ -82,20 +82,13 @@ export class WindowsNativeBridge implements INativeBridge {
     const candidates = [
       ...(resourcesPath ? [
         path.resolve(resourcesPath, 'bin/QuickswapSecHelper.exe'),
-        path.resolve(resourcesPath, 'bin/AccountHubSecHelper.exe')
       ] : []),
       path.resolve(__dirname, '../../bin/QuickswapSecHelper.exe'),
-      path.resolve(__dirname, '../../bin/AccountHubSecHelper.exe'),
       path.resolve(__dirname, '../bin/QuickswapSecHelper.exe'),
-      path.resolve(__dirname, '../bin/AccountHubSecHelper.exe'),
       path.resolve(__dirname, '../../../packages/security/bin/QuickswapSecHelper.exe'),
-      path.resolve(__dirname, '../../../packages/security/bin/AccountHubSecHelper.exe'),
       path.resolve(__dirname, '../../../../packages/security/bin/QuickswapSecHelper.exe'),
-      path.resolve(__dirname, '../../../../packages/security/bin/AccountHubSecHelper.exe'),
       path.resolve(process.cwd(), 'packages/security/bin/QuickswapSecHelper.exe'),
-      path.resolve(process.cwd(), 'packages/security/bin/AccountHubSecHelper.exe'),
       path.resolve(process.cwd(), 'resources/bin/QuickswapSecHelper.exe'),
-      path.resolve(process.cwd(), 'resources/bin/AccountHubSecHelper.exe'),
     ];
 
     for (const cand of candidates) {

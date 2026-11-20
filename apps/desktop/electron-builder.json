@@ -18,10 +18,6 @@
       "to": "bin/QuickswapSecHelper.exe"
     },
     {
-      "from": "../../packages/security/bin/AccountHubSecHelper.exe",
-      "to": "bin/AccountHubSecHelper.exe"
-    },
-    {
       "from": "resources/icon.ico",
       "to": "icon.ico"
     },

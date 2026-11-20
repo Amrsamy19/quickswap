@@ -3,7 +3,6 @@ $pkgRoot = Split-Path -Parent $scriptDir
 $sourcePath = Join-Path $pkgRoot "native-src\SecurityHelper.cs"
 $binDir = Join-Path $pkgRoot "bin"
 $outExe = Join-Path $binDir "QuickswapSecHelper.exe"
-$legacyExe = Join-Path $binDir "AccountHubSecHelper.exe"
 
 if (!(Test-Path $binDir)) {
     New-Item -ItemType Directory -Path $binDir -Force | Out-Null
@@ -29,11 +28,9 @@ Write-Host "Compiling QuickswapSecHelper with $csc..."
 
 if ($LASTEXITCODE -eq 0 -and (Test-Path $outExe)) {
     Write-Host "QuickswapSecHelper compiled successfully at: $outExe"
-    Copy-Item $outExe $legacyExe -Force
     $hash = (Get-FileHash -Algorithm SHA256 $outExe).Hash.ToLower()
     Set-Content -Path "$outExe.sha256" -Value $hash -NoNewline
-    Set-Content -Path "$legacyExe.sha256" -Value $hash -NoNewline
-    Write-Host "Updated integrity hash sidecars: $hash"
+    Write-Host "Updated integrity hash sidecar: $hash"
 } else {
     Write-Error "Failed to compile QuickswapSecHelper."
     exit 1
