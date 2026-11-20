@@ -47,10 +47,7 @@
       }
     ],
     "requestedExecutionLevel": "asInvoker",
-    "signAndEditExecutable": true,
-    "signingHashAlgorithms": [
-      "sha256"
-    ]
+    "signAndEditExecutable": true
   },
   "publish": {
     "provider": "github",

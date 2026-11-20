@@ -1,6 +1,6 @@
 {
   "name": "@quickswap/desktop",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Quickswap - Universal desktop account manager for Windows",
   "author": "Quickswap Technologies",
   "private": true,
