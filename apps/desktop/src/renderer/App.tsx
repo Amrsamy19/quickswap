@@ -39,7 +39,13 @@ export const App: React.FC = () => {
   const [selectedAppId, setSelectedAppId] = useState<string | undefined>(undefined);
   const [isAddAccountModalOpen, setIsAddAccountModalOpen] = useState(false);
   const [isUnlockModalOpen, setIsUnlockModalOpen] = useState(false);
-  const [privacyMode, setPrivacyMode] = useState(false);
+  const [privacyMode, setPrivacyMode] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('quickswap_privacy_mode') === 'true';
+    } catch {
+      return false;
+    }
+  });
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
     try {
@@ -50,6 +56,16 @@ export const App: React.FC = () => {
   });
 
   const api = typeof window !== 'undefined' ? (window.quickswapAPI || window.accountHubAPI) : null;
+
+  const handleTogglePrivacyMode = () => {
+    setPrivacyMode((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('quickswap_privacy_mode', String(next));
+      } catch {}
+      return next;
+    });
+  };
 
   const handleToggleSidebar = () => {
     setIsSidebarCollapsed((prev) => {
@@ -123,7 +139,7 @@ export const App: React.FC = () => {
         setIsCommandPaletteOpen((prev) => !prev);
       } else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'p') {
         e.preventDefault();
-        setPrivacyMode((prev) => !prev);
+        handleTogglePrivacyMode();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -261,7 +277,7 @@ export const App: React.FC = () => {
       {/* Custom Frameless Window TitleBar */}
       <TitleBar
         privacyMode={privacyMode}
-        onTogglePrivacyMode={() => setPrivacyMode((prev) => !prev)}
+        onTogglePrivacyMode={handleTogglePrivacyMode}
         onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
         vaultHealthy={securityStatus?.securityHealth === 'healthy'}
         vaultLockStatus={vaultLockStatus}
@@ -398,7 +414,7 @@ export const App: React.FC = () => {
         }}
         onAddAccount={() => setIsAddAccountModalOpen(true)}
         onScanApps={handleScanInstalled}
-        onTogglePrivacy={() => setPrivacyMode((prev) => !prev)}
+        onTogglePrivacy={handleTogglePrivacyMode}
       />
 
       {/* Adaptive Add Account Wizard */}

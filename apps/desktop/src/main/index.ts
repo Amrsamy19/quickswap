@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu } from 'electron';
+import { app, BrowserWindow, Menu, Tray, nativeImage } from 'electron';
 import path from 'path';
 import fs from 'fs';
 import { DatabaseConnection } from '@quickswap/database';
@@ -7,18 +7,78 @@ import { DEFAULT_DATABASE_NAME, LEGACY_DATABASE_NAME } from '@quickswap/shared';
 import { registerAllIpcHandlers } from './ipc';
 
 let mainWindow: BrowserWindow | null = null;
+let tray: Tray | null = null;
+let isQuitting = false;
 
-function createWindow(): void {
-  // Hide standard Electron application menu bar (File, Edit, View, Window, Help)
-  Menu.setApplicationMenu(null);
-
+function getIconPath(): string | undefined {
   const iconCandidates = [
     path.resolve(__dirname, '../../resources/icon.ico'),
     path.resolve(__dirname, '../../resources/icon.png'),
     path.resolve(process.resourcesPath || '', 'icon.ico'),
     path.resolve(process.resourcesPath || '', 'icon.png'),
   ];
-  const iconPath = iconCandidates.find((p) => fs.existsSync(p));
+  return iconCandidates.find((p) => fs.existsSync(p));
+}
+
+function createTray(): void {
+  if (tray) return;
+
+  const iconPath = getIconPath();
+  if (!iconPath) return;
+
+  try {
+    const icon = nativeImage.createFromPath(iconPath);
+    tray = new Tray(icon);
+    tray.setToolTip('Quickswap - Universal Desktop Account Vault');
+
+    const contextMenu = Menu.buildFromTemplate([
+      {
+        label: 'Open Quickswap',
+        click: () => {
+          if (mainWindow) {
+            if (mainWindow.isMinimized()) mainWindow.restore();
+            mainWindow.show();
+            mainWindow.focus();
+          }
+        },
+      },
+      { type: 'separator' },
+      {
+        label: 'Quit Quickswap',
+        click: () => {
+          isQuitting = true;
+          app.quit();
+        },
+      },
+    ]);
+
+    tray.setContextMenu(contextMenu);
+
+    tray.on('click', () => {
+      if (mainWindow) {
+        if (mainWindow.isVisible()) {
+          if (mainWindow.isMinimized()) {
+            mainWindow.restore();
+            mainWindow.focus();
+          } else {
+            mainWindow.focus();
+          }
+        } else {
+          mainWindow.show();
+          mainWindow.focus();
+        }
+      }
+    });
+  } catch (err) {
+    console.warn('[Quickswap] Failed to initialize system tray:', err);
+  }
+}
+
+function createWindow(): void {
+  // Hide standard Electron application menu bar (File, Edit, View, Window, Help)
+  Menu.setApplicationMenu(null);
+
+  const iconPath = getIconPath();
 
   mainWindow = new BrowserWindow({
     width: 1200,
@@ -28,9 +88,12 @@ function createWindow(): void {
     backgroundColor: '#0B0F17',
     icon: iconPath,
     frame: false, // Frameless custom window bar for modern gaming/security UI
-    titleBarStyle: 'hidden',
     autoHideMenuBar: true,
     show: false,
+    minimizable: true,
+    maximizable: true,
+    closable: true,
+    skipTaskbar: false,
     webPreferences: {
       preload: path.join(__dirname, '../preload/index.js'),
       contextIsolation: true,
@@ -61,6 +124,14 @@ function createWindow(): void {
 
   mainWindow.once('ready-to-show', () => {
     mainWindow?.show();
+  });
+
+  // Keep running in taskbar / system tray when closed
+  mainWindow.on('close', (event) => {
+    if (!isQuitting) {
+      event.preventDefault();
+      mainWindow?.hide();
+    }
   });
 
   mainWindow.on('closed', () => {
@@ -98,18 +169,25 @@ app.whenReady().then(async () => {
     // Ignore initial detection error
   }
 
-  // 4. Create Main Window
+  // 4. Initialize System Tray & Main Window
+  createTray();
   createWindow();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
+    } else {
+      mainWindow?.show();
     }
   });
 });
 
+app.on('before-quit', () => {
+  isQuitting = true;
+});
+
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
+  if (isQuitting || process.platform !== 'darwin') {
     DatabaseConnection.close();
     app.quit();
   }

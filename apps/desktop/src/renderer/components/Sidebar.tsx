@@ -6,10 +6,10 @@ import {
   ShieldCheck,
   History,
   Settings,
-  Shield,
   PanelLeftClose,
   PanelLeftOpen,
 } from 'lucide-react';
+import { QuickswapLogo } from './QuickswapLogo';
 
 export type NavTab =
   | 'dashboard'
@@ -68,11 +68,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         ) : (
           <div className="flex items-center justify-between px-2 py-1 mb-4">
             <div className="flex items-center gap-2.5 min-w-0">
-              <img
-                src="/icon.svg"
-                alt="Quickswap"
-                className="w-8 h-8 rounded-lg shadow-md shadow-blue-500/20 flex-shrink-0"
-              />
+              <QuickswapLogo className="w-8 h-8 rounded-lg shadow-md shadow-blue-500/20 flex-shrink-0" />
               <div className="min-w-0">
                 <div className="font-bold text-sm tracking-tight text-white truncate">
                   Quickswap

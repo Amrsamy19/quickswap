@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Shield, Eye, EyeOff, Search, Minus, Square, X, Lock, Unlock, ShieldCheck } from 'lucide-react';
 import { VaultLockStatus } from '@quickswap/shared';
+import { QuickswapLogo } from './QuickswapLogo';
 
 interface TitleBarProps {
   privacyMode: boolean;
@@ -45,7 +46,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
       {/* Brand & Status */}
       <div className="flex items-center gap-3 no-drag">
         <div className="flex items-center gap-2">
-          <img src="/icon.svg" alt="Quickswap" className="w-5 h-5 rounded-md shadow-sm shadow-blue-500/20" />
+          <QuickswapLogo className="w-5 h-5 rounded-md shadow-sm shadow-blue-500/20 flex-shrink-0" />
           <span className="font-bold text-xs tracking-tight text-white">Quickswap</span>
           <span className="text-[10px] text-slate-500 font-mono hidden sm:inline">v2.0</span>
         </div>
