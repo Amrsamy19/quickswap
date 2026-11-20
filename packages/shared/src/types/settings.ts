@@ -3,6 +3,7 @@ export interface AppSettings {
   startWithWindows: boolean;
   minimizeToTray: boolean;
   startMinimized: boolean;
+  lockOnMinimize?: boolean;
   autoLockMinutes: number;
   enableAuditLog: boolean;
   backupPath: string | null;

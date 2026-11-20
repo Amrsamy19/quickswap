@@ -1,6 +1,7 @@
 import { spawn, ChildProcess } from 'child_process';
 import path from 'path';
 import fs from 'fs';
+import crypto from 'crypto';
 import { AppError } from '@quickswap/shared';
 
 export interface NativeHelperStatus {
@@ -12,16 +13,65 @@ export interface INativeBridge {
   execute(command: string, args?: string[], stdinData?: string): Promise<any>;
 }
 
+export interface IHelperIntegrityVerifier {
+  verify(binaryPath: string): Promise<boolean> | boolean;
+}
+
+export class Sha256IntegrityVerifier implements IHelperIntegrityVerifier {
+  private pinnedHashes: Set<string>;
+
+  constructor(pinnedHashes: string[] = []) {
+    this.pinnedHashes = new Set(pinnedHashes.map((h) => h.toLowerCase()));
+  }
+
+  public async verify(binaryPath: string): Promise<boolean> {
+    if (!fs.existsSync(binaryPath)) return false;
+    const content = fs.readFileSync(binaryPath);
+    if (content.length === 0) return false;
+
+    const actualHash = crypto.createHash('sha256').update(content).digest('hex').toLowerCase();
+
+    // Check sidecar .sha256 file if present
+    const sidecarPath = `${binaryPath}.sha256`;
+    if (fs.existsSync(sidecarPath)) {
+      const expected = fs.readFileSync(sidecarPath, 'utf8').trim().toLowerCase();
+      return actualHash === expected;
+    }
+
+    if (this.pinnedHashes.size > 0) {
+      return this.pinnedHashes.has(actualHash);
+    }
+
+    // Default when binary exists and non-empty
+    return true;
+  }
+}
+
 export class WindowsNativeBridge implements INativeBridge {
   private binaryPath: string | null = null;
   private daemonProcess: ChildProcess | null = null;
   private daemonReady: boolean = false;
   private stdoutBuffer: string = '';
+  private integrityVerifier: IHelperIntegrityVerifier = new Sha256IntegrityVerifier();
   private pendingRequests = new Map<
     string,
     { resolve: (res: any) => void; reject: (err: any) => void; timeoutTimer: NodeJS.Timeout }
   >();
   private reqCounter: number = 0;
+
+  public setIntegrityVerifier(verifier: IHelperIntegrityVerifier): void {
+    this.integrityVerifier = verifier;
+  }
+
+  public async verifyBinaryIntegrity(binaryPath: string): Promise<void> {
+    const isValid = await this.integrityVerifier.verify(binaryPath);
+    if (!isValid) {
+      throw new AppError(
+        'SECURITY_VAULT_ERROR',
+        `Security helper binary failed integrity verification at "${binaryPath}". Execution aborted.`
+      );
+    }
+  }
 
   public getBinaryPath(): string {
     if (this.binaryPath && fs.existsSync(this.binaryPath)) {
@@ -139,6 +189,9 @@ export class WindowsNativeBridge implements INativeBridge {
   }
 
   public async execute(command: string, args: string[] = [], stdinData?: string): Promise<any> {
+    const exe = this.getBinaryPath();
+    await this.verifyBinaryIntegrity(exe);
+
     // If autologin-window (which interacts with UI Windows and sleeps for GUI elements), run one-shot
     if (command === 'autologin-window') {
       return this.executeOneShot(command, args, stdinData);
@@ -323,6 +376,12 @@ export class NativeBridge {
 
   public static setBridge(bridge: INativeBridge): void {
     this.activeBridge = bridge;
+  }
+
+  public static setIntegrityVerifier(verifier: IHelperIntegrityVerifier): void {
+    if (this.activeBridge instanceof WindowsNativeBridge) {
+      this.activeBridge.setIntegrityVerifier(verifier);
+    }
   }
 
   public static getBridge(): INativeBridge {

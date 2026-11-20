@@ -30,6 +30,10 @@ Write-Host "Compiling QuickswapSecHelper with $csc..."
 if ($LASTEXITCODE -eq 0 -and (Test-Path $outExe)) {
     Write-Host "QuickswapSecHelper compiled successfully at: $outExe"
     Copy-Item $outExe $legacyExe -Force
+    $hash = (Get-FileHash -Algorithm SHA256 $outExe).Hash.ToLower()
+    Set-Content -Path "$outExe.sha256" -Value $hash -NoNewline
+    Set-Content -Path "$legacyExe.sha256" -Value $hash -NoNewline
+    Write-Host "Updated integrity hash sidecars: $hash"
 } else {
     Write-Error "Failed to compile QuickswapSecHelper."
     exit 1

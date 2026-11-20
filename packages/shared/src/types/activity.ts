@@ -24,5 +24,15 @@ export interface ActivityLogEntry {
   entityId: string | null;
   title: string;
   details: string | null; // Strictly sanitized, never contains raw secrets
+  prevHash?: string;
+  entryHash?: string;
   createdAt: string;
+}
+
+export interface AuditLogVerificationResult {
+  valid: boolean;
+  totalChecked: number;
+  brokenIndex?: number;
+  brokenEntryId?: string;
+  message: string;
 }

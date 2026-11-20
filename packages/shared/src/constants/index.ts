@@ -42,9 +42,13 @@ export const IPC_CHANNELS = {
   SECURITY_VERIFY_INTEGRITY: 'security:verifyIntegrity',
   SECURITY_GET_LOCK_STATUS: 'security:getLockStatus',
   SECURITY_SET_MASTER_PASSWORD: 'security:setMasterPassword',
+  SECURITY_CHANGE_MASTER_PASSWORD: 'security:changeMasterPassword',
   SECURITY_UNLOCK_VAULT: 'security:unlockVault',
   SECURITY_LOCK_VAULT: 'security:lockVault',
   SECURITY_REMOVE_MASTER_PASSWORD: 'security:removeMasterPassword',
+  SECURITY_RESET_VAULT: 'security:resetVault',
+  SECURITY_VERIFY_AUDIT_LOG: 'security:verifyAuditLog',
+  VAULT_LOCK_STATUS_CHANGED: 'vault:lockStatusChanged',
 
   LAUNCHER_LAUNCH: 'launcher:launch',
   LAUNCHER_GET_STATUS: 'launcher:getStatus',

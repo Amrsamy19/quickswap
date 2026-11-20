@@ -12,7 +12,7 @@ import {
   AuthState,
 } from './account';
 import { AppSettings, UpdateSettingsInput } from './settings';
-import { ActivityLogEntry } from './activity';
+import { ActivityLogEntry, AuditLogVerificationResult } from './activity';
 import { StoredCredentialMetadata } from './secret';
 import { LaunchResult, ProcessStatus, LaunchHistoryEntry } from './launcher';
 
@@ -73,6 +73,10 @@ export interface QuickswapAPI {
     unlockVault(password: string): Promise<{ success: boolean; message?: string }>;
     lockVault(): Promise<{ success: boolean }>;
     removeMasterPassword(currentPassword: string): Promise<{ success: boolean }>;
+    changeMasterPassword(currentPassword: string, newPassword: string): Promise<{ success: boolean }>;
+    resetVault(confirmation: string): Promise<{ success: boolean }>;
+    verifyAuditLog(): Promise<AuditLogVerificationResult>;
+    onLockStatusChange(callback: (status: VaultLockStatus) => void): () => void;
   };
 
   launcher: {

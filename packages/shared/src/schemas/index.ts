@@ -66,6 +66,7 @@ export const UpdateSettingsSchema = z.object({
   startWithWindows: z.boolean().optional(),
   minimizeToTray: z.boolean().optional(),
   startMinimized: z.boolean().optional(),
+  lockOnMinimize: z.boolean().optional(),
   autoLockMinutes: z.number().int().min(0).max(1440).optional(),
   enableAuditLog: z.boolean().optional(),
   backupPath: z.string().nullable().optional(),
@@ -75,10 +76,19 @@ export const SetMasterPasswordSchema = z.object({
   password: z.string().min(4, 'Master password must be at least 4 characters long').max(200),
 });
 
+export const ChangeMasterPasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Current password is required').max(200),
+  newPassword: z.string().min(4, 'New master password must be at least 4 characters long').max(200),
+});
+
 export const UnlockVaultSchema = z.object({
   password: z.string().min(1, 'Password is required').max(200),
 });
 
 export const RemoveMasterPasswordSchema = z.object({
   password: z.string().min(1, 'Current password is required to remove master password').max(200),
+});
+
+export const ResetVaultSchema = z.object({
+  confirmation: z.literal('RESET-VAULT'),
 });
