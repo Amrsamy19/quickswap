@@ -19,7 +19,7 @@
     "@quickswap/database": "workspace:*",
     "@quickswap/security": "workspace:*",
     "@quickswap/shared": "workspace:*",
-    "lucide-react": "^1.16.0",
+    "lucide-react": "^1.74.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
