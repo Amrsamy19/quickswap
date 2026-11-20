@@ -4,7 +4,8 @@ import { IPC_CHANNELS } from '@quickswap/shared';
 export function registerWindowIpcHandlers(): void {
   ipcMain.handle(IPC_CHANNELS.WINDOW_MINIMIZE, (event) => {
     const win = BrowserWindow.fromWebContents(event.sender);
-    win?.minimize();
+    // Minimize to System Tray notification area
+    win?.hide();
   });
 
   ipcMain.handle(IPC_CHANNELS.WINDOW_MAXIMIZE, (event) => {

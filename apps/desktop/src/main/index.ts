@@ -12,10 +12,19 @@ let isQuitting = false;
 
 function getIconPath(): string | undefined {
   const iconCandidates = [
+    path.join(process.resourcesPath || '', 'icon.ico'),
+    path.join(process.resourcesPath || '', 'icon.png'),
     path.resolve(__dirname, '../../resources/icon.ico'),
     path.resolve(__dirname, '../../resources/icon.png'),
-    path.resolve(process.resourcesPath || '', 'icon.ico'),
-    path.resolve(process.resourcesPath || '', 'icon.png'),
+    path.resolve(__dirname, '../../dist/icon.ico'),
+    path.resolve(__dirname, '../../dist/icon.png'),
+    path.resolve(__dirname, '../../dist/favicon.ico'),
+    path.resolve(app.getAppPath(), 'resources/icon.ico'),
+    path.resolve(app.getAppPath(), 'resources/icon.png'),
+    path.resolve(app.getAppPath(), 'dist/icon.ico'),
+    path.resolve(app.getAppPath(), 'dist/icon.png'),
+    path.resolve(__dirname, '../../../resources/icon.ico'),
+    path.resolve(__dirname, '../../../resources/icon.png'),
   ];
   return iconCandidates.find((p) => fs.existsSync(p));
 }
@@ -24,11 +33,10 @@ function createTray(): void {
   if (tray) return;
 
   const iconPath = getIconPath();
-  if (!iconPath) return;
+  const icon = iconPath ? nativeImage.createFromPath(iconPath) : nativeImage.createEmpty();
 
   try {
-    const icon = nativeImage.createFromPath(iconPath);
-    tray = new Tray(icon);
+    tray = new Tray(iconPath || icon);
     tray.setToolTip('Quickswap - Universal Desktop Account Vault');
 
     const contextMenu = Menu.buildFromTemplate([
@@ -40,6 +48,12 @@ function createTray(): void {
             mainWindow.show();
             mainWindow.focus();
           }
+        },
+      },
+      {
+        label: 'Minimize to Tray',
+        click: () => {
+          mainWindow?.hide();
         },
       },
       { type: 'separator' },
@@ -57,16 +71,20 @@ function createTray(): void {
     tray.on('click', () => {
       if (mainWindow) {
         if (mainWindow.isVisible()) {
-          if (mainWindow.isMinimized()) {
-            mainWindow.restore();
-            mainWindow.focus();
-          } else {
-            mainWindow.focus();
-          }
+          mainWindow.hide();
         } else {
+          if (mainWindow.isMinimized()) mainWindow.restore();
           mainWindow.show();
           mainWindow.focus();
         }
+      }
+    });
+
+    tray.on('double-click', () => {
+      if (mainWindow) {
+        if (mainWindow.isMinimized()) mainWindow.restore();
+        mainWindow.show();
+        mainWindow.focus();
       }
     });
   } catch (err) {
@@ -126,7 +144,13 @@ function createWindow(): void {
     mainWindow?.show();
   });
 
-  // Keep running in taskbar / system tray when closed
+  // Intercept window minimize to hide to tray (notification area)
+  mainWindow.on('minimize', (event) => {
+    event.preventDefault();
+    mainWindow?.hide();
+  });
+
+  // Keep running in system tray when closed unless explicitly quitting
   mainWindow.on('close', (event) => {
     if (!isQuitting) {
       event.preventDefault();

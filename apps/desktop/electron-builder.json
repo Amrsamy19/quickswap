@@ -9,6 +9,7 @@
   "files": [
     "dist/**/*",
     "dist-electron/**/*",
+    "resources/**/*",
     "package.json"
   ],
   "extraResources": [
@@ -19,6 +20,14 @@
     {
       "from": "../../packages/security/bin/AccountHubSecHelper.exe",
       "to": "bin/AccountHubSecHelper.exe"
+    },
+    {
+      "from": "resources/icon.ico",
+      "to": "icon.ico"
+    },
+    {
+      "from": "resources/icon.png",
+      "to": "icon.png"
     }
   ],
   "win": {
