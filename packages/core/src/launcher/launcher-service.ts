@@ -1,4 +1,4 @@
-﻿import crypto from 'crypto';
+import crypto from 'crypto';
 import fs from 'fs';
 import {
   AccountsRepository,
@@ -16,9 +16,11 @@ import { ProcessMonitor } from './process-monitor';
 import { ActivityService } from '../activity/service';
 import { RiotSessionManager } from '../adapters/riot.session';
 import { AutoLoginService } from '@quickswap/security';
+import { CoreSecurityService } from '../security/service';
 
 export class LauncherService {
   public static async launch(accountId: string, force: boolean = false): Promise<LaunchResult> {
+    await CoreSecurityService.assertUnlocked();
     const account = AccountsRepository.getById(accountId);
     if (!account) {
       throw new AppError('ACCOUNT_NOT_FOUND', `Account with ID ${accountId} was not found`);
@@ -172,6 +174,7 @@ export class LauncherService {
   }
 
   public static async autoLogin(accountId: string): Promise<{ success: boolean; message: string }> {
+    await CoreSecurityService.assertUnlocked();
     const account = AccountsRepository.getById(accountId);
     if (!account) {
       throw new AppError('ACCOUNT_NOT_FOUND', `Account with ID ${accountId} was not found`);

@@ -10,6 +10,7 @@ import {
   UpdateAccountInput,
   AccountFilter,
   SecurityStatus,
+  VaultLockStatus,
   StoredCredentialMetadata,
   ActivityLogEntry,
   AppSettings,
@@ -58,6 +59,16 @@ export const quickswapAPI: QuickswapAPI = {
       ipcRenderer.invoke(IPC_CHANNELS.SECURITY_LIST_CREDENTIALS),
     verifyIntegrity: (): Promise<{ valid: boolean; issues: string[] }> =>
       ipcRenderer.invoke(IPC_CHANNELS.SECURITY_VERIFY_INTEGRITY),
+    getLockStatus: (): Promise<VaultLockStatus> =>
+      ipcRenderer.invoke(IPC_CHANNELS.SECURITY_GET_LOCK_STATUS),
+    setMasterPassword: (password: string): Promise<{ success: boolean }> =>
+      ipcRenderer.invoke(IPC_CHANNELS.SECURITY_SET_MASTER_PASSWORD, password),
+    unlockVault: (password: string): Promise<{ success: boolean; message?: string }> =>
+      ipcRenderer.invoke(IPC_CHANNELS.SECURITY_UNLOCK_VAULT, password),
+    lockVault: (): Promise<{ success: boolean }> =>
+      ipcRenderer.invoke(IPC_CHANNELS.SECURITY_LOCK_VAULT),
+    removeMasterPassword: (password: string): Promise<{ success: boolean }> =>
+      ipcRenderer.invoke(IPC_CHANNELS.SECURITY_REMOVE_MASTER_PASSWORD, password),
   },
 
   launcher: {

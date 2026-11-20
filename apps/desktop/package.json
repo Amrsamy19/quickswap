@@ -6,7 +6,8 @@
   "private": true,
   "main": "./dist-electron/main/index.js",
   "scripts": {
-    "dev": "vite",
+    "dev": "node ./scripts/dev.js",
+    "dev:web": "vite",
     "build:electron": "vite build --config vite.config.electron.ts",
     "build:renderer": "vite build",
     "build": "pnpm build:electron && pnpm build:renderer",

@@ -1,9 +1,14 @@
 import React from 'react';
-import { Plus, RefreshCw, ShieldAlert } from 'lucide-react';
+import { Plus, RefreshCw } from 'lucide-react';
 
 interface HeaderProps {
   title: string;
-  subtitle: string;
+  subtitle?: string;
+  stats?: {
+    appsCount: number;
+    accountsCount: number;
+    secretsCount: number;
+  };
   onAddAccount?: () => void;
   onScanApps?: () => void;
   scanning?: boolean;
@@ -12,33 +17,49 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   title,
   subtitle,
+  stats,
   onAddAccount,
   onScanApps,
   scanning,
 }) => {
   return (
-    <header className="h-18 px-8 border-b border-slate-800/80 bg-[#0B0F17]/70 backdrop-blur flex items-center justify-between">
-      <div>
-        <h1 className="text-xl font-bold text-white tracking-tight">{title}</h1>
-        <p className="text-xs text-slate-400 mt-0.5">{subtitle}</p>
+    <header className="h-12 px-6 border-b border-slate-800/80 bg-[#0B0F17]/60 backdrop-blur flex items-center justify-between flex-shrink-0 z-10">
+      {/* Title & Compact Meta */}
+      <div className="flex items-center gap-3 min-w-0">
+        <h1 className="text-sm font-bold text-white tracking-tight truncate">{title}</h1>
+        {stats && (
+          <div className="hidden sm:flex items-center gap-2 text-[11px] text-slate-400 border-l border-slate-800 pl-3">
+            <span>{stats.appsCount} Apps</span>
+            <span>•</span>
+            <span>{stats.accountsCount} Accounts</span>
+            <span>•</span>
+            <span>{stats.secretsCount} Secrets</span>
+          </div>
+        )}
+        {!stats && subtitle && (
+          <span className="hidden md:inline text-[11px] text-slate-400 border-l border-slate-800 pl-3 truncate">
+            {subtitle}
+          </span>
+        )}
       </div>
 
-      <div className="flex items-center gap-3">
+      {/* Action Buttons */}
+      <div className="flex items-center gap-2 flex-shrink-0">
         {onScanApps && (
           <button
             onClick={onScanApps}
             disabled={scanning}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800/60 hover:bg-slate-700/80 text-xs font-medium text-slate-200 transition-all cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-700/80 bg-slate-800/50 hover:bg-slate-700/70 text-xs font-medium text-slate-200 transition-all cursor-pointer disabled:opacity-50"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${scanning ? 'animate-spin text-blue-400' : ''}`} />
-            <span>{scanning ? 'Scanning...' : 'Scan Installed Apps'}</span>
+            <RefreshCw className={`w-3 h-3 ${scanning ? 'animate-spin text-blue-400' : ''}`} />
+            <span>{scanning ? 'Scanning...' : 'Scan Apps'}</span>
           </button>
         )}
 
         {onAddAccount && (
           <button
             onClick={onAddAccount}
-            className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs font-semibold shadow-sm shadow-blue-500/20 transition-all cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add Account</span>

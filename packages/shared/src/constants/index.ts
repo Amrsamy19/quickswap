@@ -40,6 +40,11 @@ export const IPC_CHANNELS = {
   SECURITY_GET_STATUS: 'security:getStatus',
   SECURITY_LIST_CREDENTIALS: 'security:listStoredCredentials',
   SECURITY_VERIFY_INTEGRITY: 'security:verifyIntegrity',
+  SECURITY_GET_LOCK_STATUS: 'security:getLockStatus',
+  SECURITY_SET_MASTER_PASSWORD: 'security:setMasterPassword',
+  SECURITY_UNLOCK_VAULT: 'security:unlockVault',
+  SECURITY_LOCK_VAULT: 'security:lockVault',
+  SECURITY_REMOVE_MASTER_PASSWORD: 'security:removeMasterPassword',
 
   LAUNCHER_LAUNCH: 'launcher:launch',
   LAUNCHER_GET_STATUS: 'launcher:getStatus',

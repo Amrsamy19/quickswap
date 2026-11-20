@@ -34,6 +34,15 @@ export interface SecurityStatus {
   lastSecurityCheck: string;
 }
 
+export interface VaultLockStatus {
+  isLocked: boolean;
+  hasMasterPassword: boolean;
+  failedAttempts: number;
+  isLockedOut: boolean;
+  lockoutRemainingSeconds: number;
+  autoLockMinutes: number;
+}
+
 export interface QuickswapAPI {
   applications: {
     list(): Promise<Application[]>;
@@ -59,6 +68,11 @@ export interface QuickswapAPI {
     getStatus(): Promise<SecurityStatus>;
     listStoredCredentials(): Promise<StoredCredentialMetadata[]>;
     verifyIntegrity(): Promise<{ valid: boolean; issues: string[] }>;
+    getLockStatus(): Promise<VaultLockStatus>;
+    setMasterPassword(password: string): Promise<{ success: boolean }>;
+    unlockVault(password: string): Promise<{ success: boolean; message?: string }>;
+    lockVault(): Promise<{ success: boolean }>;
+    removeMasterPassword(currentPassword: string): Promise<{ success: boolean }>;
   };
 
   launcher: {

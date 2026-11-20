@@ -3,6 +3,7 @@ import {
   Application,
   Account,
   SecurityStatus,
+  VaultLockStatus,
   StoredCredentialMetadata,
   ActivityLogEntry,
   AppSettings,
@@ -23,26 +24,63 @@ import { AccountModal } from './features/accounts/AccountModal';
 import { AccountWizardModal } from './features/accounts/AccountWizardModal';
 import { TitleBar } from './components/TitleBar';
 import { CommandPalette } from './components/CommandPalette';
+import { UnlockVaultModal } from './components/UnlockVaultModal';
 
 export const App: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<NavTab>('dashboard');
   const [applications, setApplications] = useState<Application[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [securityStatus, setSecurityStatus] = useState<SecurityStatus | null>(null);
+  const [vaultLockStatus, setVaultLockStatus] = useState<VaultLockStatus | null>(null);
   const [credentials, setCredentials] = useState<StoredCredentialMetadata[]>([]);
   const [activities, setActivities] = useState<ActivityLogEntry[]>([]);
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [scanning, setScanning] = useState(false);
   const [selectedAppId, setSelectedAppId] = useState<string | undefined>(undefined);
   const [isAddAccountModalOpen, setIsAddAccountModalOpen] = useState(false);
+  const [isUnlockModalOpen, setIsUnlockModalOpen] = useState(false);
   const [privacyMode, setPrivacyMode] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('quickswap_sidebar_collapsed') === 'true';
+    } catch {
+      return false;
+    }
+  });
 
   const api = typeof window !== 'undefined' ? (window.quickswapAPI || window.accountHubAPI) : null;
+
+  const handleToggleSidebar = () => {
+    setIsSidebarCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('quickswap_sidebar_collapsed', String(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  const handleLockVault = async () => {
+    if (!api?.security?.lockVault) return;
+    try {
+      await api.security.lockVault();
+      if (api.security.getLockStatus) {
+        const lockStatus = await api.security.getLockStatus();
+        setVaultLockStatus(lockStatus);
+      }
+    } catch (err) {
+      console.error('Failed to lock vault:', err);
+    }
+  };
 
   const loadData = useCallback(async () => {
     if (!api) return;
     try {
+      if (api.security?.getLockStatus) {
+        api.security.getLockStatus().then(setVaultLockStatus).catch(() => {});
+      }
+
       if (api.dashboard?.getSummary) {
         const summary = await api.dashboard.getSummary();
         setApplications(summary.applications);
@@ -146,9 +184,16 @@ export const App: React.FC = () => {
 
   const handleLaunchAccount = async (accountId: string, force: boolean = false) => {
     if (!api) return { success: false, message: 'API not available' };
-    const res = await api.launcher.launch(accountId, force);
-    await loadData();
-    return res;
+    try {
+      const res = await api.launcher.launch(accountId, force);
+      await loadData();
+      return res;
+    } catch (err: any) {
+      if (err?.message?.toLowerCase().includes('locked') || err?.message?.toLowerCase().includes('vault')) {
+        setIsUnlockModalOpen(true);
+      }
+      throw err;
+    }
   };
 
   const handleToggleFavorite = async (id: string) => {
@@ -219,6 +264,9 @@ export const App: React.FC = () => {
         onTogglePrivacyMode={() => setPrivacyMode((prev) => !prev)}
         onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
         vaultHealthy={securityStatus?.securityHealth === 'healthy'}
+        vaultLockStatus={vaultLockStatus}
+        onOpenUnlockModal={() => setIsUnlockModalOpen(true)}
+        onLockVault={handleLockVault}
       />
 
       <div className="flex-1 flex min-h-0 overflow-hidden">
@@ -232,6 +280,8 @@ export const App: React.FC = () => {
             }
           }}
           vaultHealthy={securityStatus?.securityHealth === 'healthy'}
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapse={handleToggleSidebar}
         />
 
         {/* Main Content Area */}
@@ -239,6 +289,15 @@ export const App: React.FC = () => {
           <Header
             title={meta.title}
             subtitle={meta.subtitle}
+            stats={
+              currentTab === 'dashboard'
+                ? {
+                    appsCount: applications.length,
+                    accountsCount: accounts.length,
+                    secretsCount: securityStatus?.activeSecretReferences || 0,
+                  }
+                : undefined
+            }
             onAddAccount={applications.length > 0 ? () => setIsAddAccountModalOpen(true) : undefined}
             onScanApps={handleScanInstalled}
             scanning={scanning}
@@ -304,11 +363,25 @@ export const App: React.FC = () => {
             )}
 
             {currentTab === 'settings' && (
-              <SettingsView settings={settings} onUpdate={handleUpdateSettings} />
+              <SettingsView
+                settings={settings}
+                onUpdate={handleUpdateSettings}
+                vaultLockStatus={vaultLockStatus}
+                onConfigureMasterPassword={() => setIsUnlockModalOpen(true)}
+                onLockVault={handleLockVault}
+              />
             )}
           </main>
         </div>
       </div>
+
+      {/* Unlock / Master Password Modal */}
+      <UnlockVaultModal
+        isOpen={isUnlockModalOpen}
+        onClose={() => setIsUnlockModalOpen(false)}
+        status={vaultLockStatus}
+        onUnlocked={loadData}
+      />
 
       {/* Command Palette (Ctrl+K) */}
       <CommandPalette

@@ -70,3 +70,15 @@ export const UpdateSettingsSchema = z.object({
   enableAuditLog: z.boolean().optional(),
   backupPath: z.string().nullable().optional(),
 });
+
+export const SetMasterPasswordSchema = z.object({
+  password: z.string().min(4, 'Master password must be at least 4 characters long').max(200),
+});
+
+export const UnlockVaultSchema = z.object({
+  password: z.string().min(1, 'Password is required').max(200),
+});
+
+export const RemoveMasterPasswordSchema = z.object({
+  password: z.string().min(1, 'Current password is required to remove master password').max(200),
+});

@@ -1,4 +1,4 @@
-import { spawn } from 'child_process';
+import { spawn, ChildProcess } from 'child_process';
 import path from 'path';
 import fs from 'fs';
 import { AppError } from '@quickswap/shared';
@@ -14,6 +14,14 @@ export interface INativeBridge {
 
 export class WindowsNativeBridge implements INativeBridge {
   private binaryPath: string | null = null;
+  private daemonProcess: ChildProcess | null = null;
+  private daemonReady: boolean = false;
+  private stdoutBuffer: string = '';
+  private pendingRequests = new Map<
+    string,
+    { resolve: (res: any) => void; reject: (err: any) => void; timeoutTimer: NodeJS.Timeout }
+  >();
+  private reqCounter: number = 0;
 
   public getBinaryPath(): string {
     if (this.binaryPath && fs.existsSync(this.binaryPath)) {
@@ -53,7 +61,132 @@ export class WindowsNativeBridge implements INativeBridge {
     );
   }
 
+  private startDaemon(): void {
+    if (this.daemonProcess) return;
+
+    try {
+      const exe = this.getBinaryPath();
+      this.daemonProcess = spawn(exe, ['daemon'], {
+        windowsHide: true,
+        stdio: ['pipe', 'pipe', 'pipe'],
+      });
+
+      this.stdoutBuffer = '';
+
+      this.daemonProcess.stdout?.on('data', (chunk: Buffer) => {
+        this.stdoutBuffer += chunk.toString('utf8');
+        const lines = this.stdoutBuffer.split('\n');
+        // Keep incomplete trailing segment in buffer
+        this.stdoutBuffer = lines.pop() || '';
+
+        for (const rawLine of lines) {
+          const line = rawLine.trim();
+          if (!line) continue;
+
+          try {
+            const parsed = JSON.parse(line);
+            if (parsed.status === 'daemon_ready') {
+              this.daemonReady = true;
+              continue;
+            }
+
+            if (parsed.id && this.pendingRequests.has(parsed.id)) {
+              const pending = this.pendingRequests.get(parsed.id)!;
+              this.pendingRequests.delete(parsed.id);
+              clearTimeout(pending.timeoutTimer);
+
+              if (parsed.error) {
+                pending.reject(new AppError('SECURITY_VAULT_ERROR', parsed.error));
+              } else if (parsed.response && parsed.response.error) {
+                pending.reject(new AppError('SECURITY_VAULT_ERROR', parsed.response.error));
+              } else {
+                pending.resolve(parsed.response !== undefined ? parsed.response : parsed);
+              }
+            }
+          } catch {
+            // Non-JSON or debug log line, ignore
+          }
+        }
+      });
+
+      this.daemonProcess.on('error', () => {
+        this.cleanupDaemon();
+      });
+
+      this.daemonProcess.on('close', () => {
+        this.cleanupDaemon();
+      });
+    } catch {
+      this.cleanupDaemon();
+    }
+  }
+
+  private cleanupDaemon(): void {
+    if (this.daemonProcess) {
+      try {
+        this.daemonProcess.kill();
+      } catch {}
+      this.daemonProcess = null;
+    }
+    this.daemonReady = false;
+
+    // Reject all pending requests with fallback notification
+    for (const [, req] of this.pendingRequests) {
+      clearTimeout(req.timeoutTimer);
+      req.reject(new AppError('SECURITY_VAULT_ERROR', 'Security helper daemon exited unexpectedly'));
+    }
+    this.pendingRequests.clear();
+  }
+
   public async execute(command: string, args: string[] = [], stdinData?: string): Promise<any> {
+    // If autologin-window (which interacts with UI Windows and sleeps for GUI elements), run one-shot
+    if (command === 'autologin-window') {
+      return this.executeOneShot(command, args, stdinData);
+    }
+
+    try {
+      this.startDaemon();
+      if (this.daemonProcess && this.daemonProcess.stdin) {
+        return await this.executeViaDaemon(command, args, stdinData);
+      }
+    } catch {
+      // Fallback to one-shot process spawn if daemon fails
+    }
+
+    return this.executeOneShot(command, args, stdinData);
+  }
+
+  private executeViaDaemon(command: string, args: string[], stdinData?: string): Promise<any> {
+    return new Promise((resolve, reject) => {
+      const id = `req_${++this.reqCounter}_${Date.now()}`;
+      const payload = JSON.stringify({
+        id,
+        command,
+        args,
+        data: stdinData || null,
+      });
+
+      const timeoutTimer = setTimeout(() => {
+        if (this.pendingRequests.has(id)) {
+          this.pendingRequests.delete(id);
+          // Fall back to one-shot execution on timeout
+          this.executeOneShot(command, args, stdinData).then(resolve, reject);
+        }
+      }, 5000);
+
+      this.pendingRequests.set(id, { resolve, reject, timeoutTimer });
+
+      try {
+        this.daemonProcess!.stdin!.write(payload + '\n');
+      } catch (err: any) {
+        this.pendingRequests.delete(id);
+        clearTimeout(timeoutTimer);
+        this.executeOneShot(command, args, stdinData).then(resolve, reject);
+      }
+    });
+  }
+
+  public async executeOneShot(command: string, args: string[] = [], stdinData?: string): Promise<any> {
     const exe = this.getBinaryPath();
 
     return new Promise((resolve, reject) => {

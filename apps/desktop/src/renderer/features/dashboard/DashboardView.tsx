@@ -120,53 +120,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* 1. Slim Stats Strip (44px) - Saves vertical real estate */}
-      <div className="bg-[#111827]/90 border border-slate-800/90 rounded-xl px-4 py-2.5 flex items-center justify-between text-xs backdrop-blur-sm shadow-sm">
-        <div className="flex items-center gap-6 divide-x divide-slate-800">
-          <div
-            onClick={onNavigateToApplications}
-            className="flex items-center gap-2 cursor-pointer hover:text-blue-400 transition-colors"
-          >
-            <Gamepad2 className="w-3.5 h-3.5 text-blue-400" />
-            <span className="font-semibold text-white">{applications.length}</span>
-            <span className="text-slate-400 text-[11px]">Applications</span>
-          </div>
-
-          <div
-            onClick={() => onNavigateToAccounts()}
-            className="flex items-center gap-2 pl-6 cursor-pointer hover:text-indigo-400 transition-colors"
-          >
-            <Users className="w-3.5 h-3.5 text-indigo-400" />
-            <span className="font-semibold text-white">{accounts.length}</span>
-            <span className="text-slate-400 text-[11px]">
-              Accounts ({favoriteAccounts.length} pinned)
-            </span>
-          </div>
-
-          <div
-            onClick={onNavigateToSecurity}
-            className="flex items-center gap-2 pl-6 cursor-pointer hover:text-cyan-400 transition-colors hidden sm:flex"
-          >
-            <KeyRound className="w-3.5 h-3.5 text-cyan-400" />
-            <span className="font-semibold text-white">
-              {securityStatus?.activeSecretReferences || 0}
-            </span>
-            <span className="text-slate-400 text-[11px]">Vault Secrets (WinCred + DPAPI)</span>
-          </div>
-        </div>
-
-        <div
-          onClick={onNavigateToSecurity}
-          className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
-        >
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="font-medium text-emerald-400 text-[11px]">
-            Vault {securityStatus?.securityHealth || 'Healthy'}
-          </span>
-        </div>
-      </div>
-
-      {/* 2. Hero Quick Access Accounts (Top Billing) */}
+      {/* Hero Quick Access Accounts (Top Billing) */}
       <div className="bg-[#111827] border border-slate-800/80 rounded-2xl p-6 shadow-xl">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">

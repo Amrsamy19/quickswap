@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Eye, EyeOff, Search, Minus, Square, X, Lock } from 'lucide-react';
+import { Shield, Eye, EyeOff, Search, Minus, Square, X, Lock, Unlock, ShieldCheck } from 'lucide-react';
+import { VaultLockStatus } from '@quickswap/shared';
 
 interface TitleBarProps {
   privacyMode: boolean;
   onTogglePrivacyMode: () => void;
   onOpenCommandPalette: () => void;
   vaultHealthy: boolean;
+  vaultLockStatus?: VaultLockStatus | null;
+  onOpenUnlockModal?: () => void;
+  onLockVault?: () => void;
 }
 
 export const TitleBar: React.FC<TitleBarProps> = ({
@@ -13,6 +17,9 @@ export const TitleBar: React.FC<TitleBarProps> = ({
   onTogglePrivacyMode,
   onOpenCommandPalette,
   vaultHealthy,
+  vaultLockStatus,
+  onOpenUnlockModal,
+  onLockVault,
 }) => {
   const [isMaximized, setIsMaximized] = useState(false);
   const api = typeof window !== 'undefined' ? (window.quickswapAPI || window.accountHubAPI) : null;
@@ -45,11 +52,37 @@ export const TitleBar: React.FC<TitleBarProps> = ({
           <span className="text-[10px] text-slate-500 font-mono hidden sm:inline">v2.0</span>
         </div>
 
-        {/* Vault Status Indicator */}
-        <div className="hidden md:flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-[10px] text-slate-300">
-          <span className={`w-1.5 h-1.5 rounded-full ${vaultHealthy ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
-          <span>{vaultHealthy ? 'Vault Hardware-Secured' : 'Degraded'}</span>
-        </div>
+        {/* Interactive Vault Status Indicator */}
+        {vaultLockStatus?.hasMasterPassword ? (
+          vaultLockStatus.isLocked ? (
+            <button
+              onClick={onOpenUnlockModal}
+              title="Vault is locked. Click to unlock"
+              className="hidden md:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/40 text-[10px] text-amber-300 hover:bg-amber-500/20 transition-all cursor-pointer shadow-sm shadow-amber-500/10"
+            >
+              <Lock className="w-3 h-3 text-amber-400" />
+              <span className="font-medium">Vault: Locked</span>
+            </button>
+          ) : (
+            <button
+              onClick={onLockVault}
+              title="Vault is unlocked. Click to lock"
+              className="hidden md:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[10px] text-emerald-300 hover:bg-emerald-500/20 transition-all cursor-pointer"
+            >
+              <ShieldCheck className="w-3 h-3 text-emerald-400" />
+              <span>Vault: Unlocked</span>
+            </button>
+          )
+        ) : (
+          <button
+            onClick={onOpenUnlockModal}
+            title="Click to set a Master Password"
+            className="hidden md:flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-[10px] text-slate-300 hover:border-slate-700 transition-all cursor-pointer"
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${vaultHealthy ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+            <span>{vaultHealthy ? 'Vault Hardware-Secured' : 'Degraded'}</span>
+          </button>
+        )}
       </div>
 
       {/* Center Search Pill (Ctrl+K trigger) */}

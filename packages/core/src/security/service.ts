@@ -1,6 +1,13 @@
-﻿import { NativeBridge, CredentialVault } from '@quickswap/security';
-import { AccountSecretsRepository, AccountsRepository } from '@quickswap/database';
-import { SecurityStatus, StoredCredentialMetadata } from '@quickswap/shared';
+import { NativeBridge, CredentialVault, VaultGate } from '@quickswap/security';
+import { AccountSecretsRepository, AccountsRepository, SettingsRepository } from '@quickswap/database';
+import { SecurityStatus, StoredCredentialMetadata, VaultLockStatus } from '@quickswap/shared';
+
+// Initialize VaultGate with SettingsRepository storage
+VaultGate.setStorageProvider({
+  get: (key: string) => SettingsRepository.getRaw(key),
+  set: (key: string, value: string) => SettingsRepository.setRaw(key, value),
+  remove: (key: string) => SettingsRepository.removeRaw(key),
+});
 
 export class CoreSecurityService {
   public static async getStatus(): Promise<SecurityStatus> {
@@ -79,5 +86,42 @@ export class CoreSecurityService {
       valid: issues.length === 0,
       issues,
     };
+  }
+
+  public static async getLockStatus(): Promise<VaultLockStatus> {
+    const settings = SettingsRepository.getSettings();
+    VaultGate.setAutoLockMinutes(settings.autoLockMinutes || 0);
+    VaultGate.checkAutoLock();
+    return VaultGate.getStatus();
+  }
+
+  public static async setMasterPassword(password: string): Promise<{ success: boolean }> {
+    const success = await VaultGate.setMasterPassword(password);
+    return { success };
+  }
+
+  public static async unlockVault(password: string): Promise<{ success: boolean; message?: string }> {
+    return VaultGate.unlock(password);
+  }
+
+  public static async lockVault(): Promise<{ success: boolean }> {
+    VaultGate.lock();
+    return { success: true };
+  }
+
+  public static async removeMasterPassword(currentPassword: string): Promise<{ success: boolean }> {
+    const success = await VaultGate.removeMasterPassword(currentPassword);
+    return { success };
+  }
+
+  public static async assertUnlocked(): Promise<void> {
+    const settings = SettingsRepository.getSettings();
+    VaultGate.setAutoLockMinutes(settings.autoLockMinutes || 0);
+    VaultGate.checkAutoLock();
+    await VaultGate.assertUnlocked();
+  }
+
+  public static recordActivity(): void {
+    VaultGate.recordActivity();
   }
 }

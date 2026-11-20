@@ -22,7 +22,7 @@ if (-not $csc) {
 }
 
 Write-Host "Compiling QuickswapSecHelper with $csc..."
-& $csc /nologo /optimize+ /target:exe /r:System.Windows.Forms.dll /out:$outExe $sourcePath
+& $csc /nologo /optimize+ /target:exe /r:System.Windows.Forms.dll /r:System.Web.Extensions.dll /out:$outExe $sourcePath
 
 if ($LASTEXITCODE -eq 0 -and (Test-Path $outExe)) {
     Write-Host "QuickswapSecHelper compiled successfully at: $outExe"

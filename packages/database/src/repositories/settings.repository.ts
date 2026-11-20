@@ -1,4 +1,4 @@
-﻿import { DatabaseConnection } from '../connection';
+import { DatabaseConnection } from '../connection';
 import { AppSettings } from '@quickswap/shared';
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -43,5 +43,30 @@ export class SettingsRepository {
     }
 
     return this.getSettings();
+  }
+
+  public static getRaw(key: string): string | null {
+    const db = DatabaseConnection.getInstance();
+    const row = db.prepare('SELECT value FROM settings WHERE key = ?').get(key) as { value: string } | undefined;
+    if (!row) return null;
+    try {
+      return JSON.parse(row.value);
+    } catch {
+      return row.value;
+    }
+  }
+
+  public static setRaw(key: string, value: string): void {
+    const db = DatabaseConnection.getInstance();
+    db.prepare(`
+      INSERT INTO settings (key, value)
+      VALUES (?, ?)
+      ON CONFLICT(key) DO UPDATE SET value = excluded.value
+    `).run(key, JSON.stringify(value));
+  }
+
+  public static removeRaw(key: string): void {
+    const db = DatabaseConnection.getInstance();
+    db.prepare('DELETE FROM settings WHERE key = ?').run(key);
   }
 }

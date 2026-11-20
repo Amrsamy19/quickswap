@@ -1,4 +1,4 @@
-﻿import crypto from 'crypto';
+import crypto from 'crypto';
 import {
   AccountsRepository,
   AccountSecretsRepository,
@@ -16,6 +16,7 @@ import {
 } from '@quickswap/shared';
 import { CredentialVault } from '@quickswap/security';
 import { ActivityService } from '../activity/service';
+import { CoreSecurityService } from '../security/service';
 
 export class AccountService {
   public static list(filter?: AccountFilter): Account[] {
@@ -217,6 +218,7 @@ export class AccountService {
     if (!existing) {
       throw new AppError('ACCOUNT_NOT_FOUND', `Account with ID ${accountId} was not found`);
     }
+    await CoreSecurityService.assertUnlocked();
     return CredentialVault.getCredential(accountId, 'password');
   }
 }

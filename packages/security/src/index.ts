@@ -3,3 +3,5 @@ export * from './credential-vault';
 export * from './encryption/dpapi';
 export * from './validation/sanitizer';
 export * from './automation/auto-login';
+export * from './vault-gate';
+

@@ -5,6 +5,7 @@
   "description": "Quickswap - Universal desktop account manager for Windows",
   "scripts": {
     "dev": "pnpm --filter @quickswap/desktop dev",
+    "dev:web": "pnpm --filter @quickswap/desktop dev:web",
     "start": "pnpm --filter @quickswap/desktop start",
     "build": "pnpm -r --filter \"./packages/*\" build && pnpm --filter @quickswap/desktop build",
     "package:win": "pnpm --filter @quickswap/desktop package:win",

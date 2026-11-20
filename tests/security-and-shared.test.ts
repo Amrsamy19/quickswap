@@ -180,4 +180,64 @@ describe('AccountHub Security Package (Windows Native Credential Manager & DPAPI
     const read2 = await mock.execute('cred-read', ['Quickswap/test/pwd']);
     expect(read2.found).toBe(false);
   });
+
+  it('protects vault with VaultGate master password derivation and brute-force backoff', async () => {
+    const { VaultGate } = await import('../packages/security/src/vault-gate');
+    const store = new Map<string, string>();
+    VaultGate.setStorageProvider({
+      get: (k) => store.get(k) || null,
+      set: (k, v) => { store.set(k, v); },
+      remove: (k) => { store.delete(k); },
+    });
+
+    // 1. Initially no master password
+    expect(await VaultGate.hasMasterPassword()).toBe(false);
+    await expect(VaultGate.assertUnlocked()).resolves.toBeUndefined();
+
+    // 2. Set master password
+    await VaultGate.setMasterPassword('MasterKey2026!');
+    expect(await VaultGate.hasMasterPassword()).toBe(true);
+    const statusAfterSet = await VaultGate.getStatus();
+    expect(statusAfterSet.isLocked).toBe(false);
+
+    // 3. Lock vault
+    VaultGate.lock();
+    const statusLocked = await VaultGate.getStatus();
+    expect(statusLocked.isLocked).toBe(true);
+
+    // 4. Assert unlocked fails when locked
+    await expect(VaultGate.assertUnlocked()).rejects.toThrow(/Vault is locked/);
+
+    // 5. Unlock with wrong password fails
+    await expect(VaultGate.unlock('WrongPassword!')).rejects.toThrow(/Incorrect master password/);
+    const statusFailed = await VaultGate.getStatus();
+    expect(statusFailed.failedAttempts).toBe(1);
+
+    // 6. Unlock with correct password succeeds
+    const unlockRes = await VaultGate.unlock('MasterKey2026!');
+    expect(unlockRes.success).toBe(true);
+    const statusUnlocked = await VaultGate.getStatus();
+    expect(statusUnlocked.isLocked).toBe(false);
+    expect(statusUnlocked.failedAttempts).toBe(0);
+
+    // 7. Remove master password
+    await VaultGate.removeMasterPassword('MasterKey2026!');
+    expect(await VaultGate.hasMasterPassword()).toBe(false);
+  });
+
+  it('executes consecutive requests through the persistent helper daemon', async () => {
+    const start = Date.now();
+    const [s1, s2, s3] = await Promise.all([
+      NativeBridge.execute('status'),
+      NativeBridge.execute('status'),
+      NativeBridge.execute('status'),
+    ]);
+    const elapsed = Date.now() - start;
+
+    expect(s1.windowsCredManager).toBe(true);
+    expect(s2.windowsCredManager).toBe(true);
+    expect(s3.windowsCredManager).toBe(true);
+    // Daemon multiplexing should be rapid
+    expect(elapsed).toBeLessThan(3000);
+  });
 });

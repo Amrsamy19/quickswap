@@ -5,9 +5,10 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Web.Script.Serialization;
 using System.Windows.Forms;
 
-namespace AccountHub.Security {
+namespace Quickswap.Security {
     class Program {
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
         public struct CREDENTIAL {
@@ -89,43 +90,90 @@ namespace AccountHub.Security {
             }
 
             string command = args[0].ToLowerInvariant();
+            if (command == "daemon") {
+                return RunDaemonLoop();
+            }
+
             try {
-                switch (command) {
-                    case "status":
-                        return HandleStatus();
-
-                    case "dpapi-protect":
-                        return HandleDpapiProtect(args);
-
-                    case "dpapi-unprotect":
-                        return HandleDpapiUnprotect(args);
-
-                    case "cred-write":
-                        return HandleCredWrite(args);
-
-                    case "cred-read":
-                        return HandleCredRead(args);
-
-                    case "cred-delete":
-                        return HandleCredDelete(args);
-
-                    case "cred-list":
-                        return HandleCredList(args);
-
-                    case "autologin-window":
-                        return HandleAutoLoginWindow(args);
-
-                    default:
-                        Console.WriteLine("{\"error\":\"Unknown command: " + EscapeJson(command) + "\"}");
-                        return 1;
-                }
+                string result = DispatchCommand(command, args, null);
+                Console.WriteLine(result);
+                return result.Contains("\"error\"") ? 1 : 0;
             } catch (Exception ex) {
                 Console.WriteLine("{\"error\":\"" + EscapeJson(ex.Message) + "\"}");
                 return 1;
             }
         }
 
-        private static int HandleStatus() {
+        private static int RunDaemonLoop() {
+            var serializer = new JavaScriptSerializer();
+            Console.WriteLine("{\"status\":\"daemon_ready\"}");
+            Console.Out.Flush();
+
+            string line;
+            while ((line = Console.ReadLine()) != null) {
+                line = line.Trim();
+                if (string.IsNullOrEmpty(line)) continue;
+                if (line == "exit" || line == "quit") break;
+
+                string reqId = "";
+                try {
+                    var dict = serializer.Deserialize<Dictionary<string, object>>(line);
+                    if (dict != null) {
+                        if (dict.ContainsKey("id")) reqId = Convert.ToString(dict["id"]);
+                        string cmd = dict.ContainsKey("command") ? Convert.ToString(dict["command"]) : "";
+                        List<string> argsList = new List<string>();
+                        if (dict.ContainsKey("args")) {
+                            System.Collections.ArrayList arr = dict["args"] as System.Collections.ArrayList;
+                            if (arr != null) {
+                                foreach (object itm in arr) argsList.Add(Convert.ToString(itm));
+                            }
+                        }
+                        string data = dict.ContainsKey("data") ? Convert.ToString(dict["data"]) : null;
+
+                        string jsonRes = DispatchCommand(cmd, argsList.ToArray(), data);
+                        Console.WriteLine(string.Format("{{\"id\":\"{0}\",\"response\":{1}}}", EscapeJson(reqId), jsonRes));
+                    }
+                } catch (Exception ex) {
+                    Console.WriteLine(string.Format("{{\"id\":\"{0}\",\"error\":\"{1}\"}}", EscapeJson(reqId), EscapeJson(ex.Message)));
+                }
+                Console.Out.Flush();
+            }
+            return 0;
+        }
+
+        private static string DispatchCommand(string command, string[] args, string inputData) {
+            string cmd = (command ?? "").ToLowerInvariant();
+            switch (cmd) {
+                case "status":
+                    return HandleStatus();
+
+                case "dpapi-protect":
+                    return HandleDpapiProtect(args, inputData);
+
+                case "dpapi-unprotect":
+                    return HandleDpapiUnprotect(args, inputData);
+
+                case "cred-write":
+                    return HandleCredWrite(args, inputData);
+
+                case "cred-read":
+                    return HandleCredRead(args);
+
+                case "cred-delete":
+                    return HandleCredDelete(args);
+
+                case "cred-list":
+                    return HandleCredList(args);
+
+                case "autologin-window":
+                    return HandleAutoLoginWindow(args);
+
+                default:
+                    return "{\"error\":\"Unknown command: " + EscapeJson(cmd) + "\"}";
+            }
+        }
+
+        private static string HandleStatus() {
             bool credOk = true;
             bool dpapiOk = true;
 
@@ -138,51 +186,49 @@ namespace AccountHub.Security {
                 dpapiOk = false;
             }
 
-            Console.WriteLine(string.Format("{{\"windowsCredManager\":{0},\"dpapi\":{1}}}",
+            return string.Format("{{\"windowsCredManager\":{0},\"dpapi\":{1}}}",
                 credOk ? "true" : "false",
-                dpapiOk ? "true" : "false"));
-            return 0;
+                dpapiOk ? "true" : "false");
         }
 
-        private static int HandleDpapiProtect(string[] args) {
-            string input = ReadInput(args, 1);
+        private static string HandleDpapiProtect(string[] args, string inputData) {
+            string input = ReadInput(args, 1, inputData);
             if (input == null) {
-                Console.WriteLine("{\"error\":\"No input data provided for DPAPI protect\"}");
-                return 1;
+                return "{\"error\":\"No input data provided for DPAPI protect\"}";
             }
 
             byte[] plain = Encoding.UTF8.GetBytes(input);
             byte[] encrypted = ProtectedData.Protect(plain, null, DataProtectionScope.CurrentUser);
             string base64 = Convert.ToBase64String(encrypted);
 
-            Console.WriteLine("{\"success\":true,\"data\":\"" + base64 + "\"}");
-            return 0;
+            return "{\"success\":true,\"data\":\"" + base64 + "\"}";
         }
 
-        private static int HandleDpapiUnprotect(string[] args) {
-            string base64 = ReadInput(args, 1);
+        private static string HandleDpapiUnprotect(string[] args, string inputData) {
+            string base64 = ReadInput(args, 1, inputData);
             if (string.IsNullOrEmpty(base64)) {
-                Console.WriteLine("{\"error\":\"No input data provided for DPAPI unprotect\"}");
-                return 1;
+                return "{\"error\":\"No input data provided for DPAPI unprotect\"}";
             }
 
             byte[] encrypted = Convert.FromBase64String(base64.Trim());
             byte[] plain = ProtectedData.Unprotect(encrypted, null, DataProtectionScope.CurrentUser);
             string result = Encoding.UTF8.GetString(plain);
 
-            Console.WriteLine("{\"success\":true,\"data\":\"" + EscapeJson(result) + "\"}");
-            return 0;
+            return "{\"success\":true,\"data\":\"" + EscapeJson(result) + "\"}";
         }
 
-        private static int HandleCredWrite(string[] args) {
-            if (args.Length < 3) {
-                Console.WriteLine("{\"error\":\"cred-write requires <target> <username>\"}");
-                return 1;
+        private static string HandleCredWrite(string[] args, string inputData) {
+            int targetIdx = (args.Length > 0 && args[0].ToLowerInvariant() == "cred-write") ? 1 : 0;
+            int userIdx = targetIdx + 1;
+            int passIdx = userIdx + 1;
+
+            if (args.Length <= userIdx) {
+                return "{\"error\":\"cred-write requires <target> <username>\"}";
             }
 
-            string target = args[1];
-            string username = args[2];
-            string password = ReadInput(args, 3);
+            string target = args[targetIdx];
+            string username = args[userIdx];
+            string password = ReadInput(args, passIdx, inputData);
             if (password == null) password = "";
 
             byte[] credBytes = Encoding.Unicode.GetBytes(password);
@@ -200,25 +246,23 @@ namespace AccountHub.Security {
 
                 bool success = CredWrite(ref cred, 0);
                 if (success) {
-                    Console.WriteLine("{\"success\":true,\"target\":\"" + EscapeJson(target) + "\"}");
-                    return 0;
+                    return "{\"success\":true,\"target\":\"" + EscapeJson(target) + "\"}";
                 } else {
                     int err = Marshal.GetLastWin32Error();
-                    Console.WriteLine("{\"error\":\"CredWrite failed with Win32 error " + err + "\"}");
-                    return 1;
+                    return "{\"error\":\"CredWrite failed with Win32 error " + err + "\"}";
                 }
             } finally {
                 Marshal.FreeHGlobal(credBlob);
             }
         }
 
-        private static int HandleCredRead(string[] args) {
-            if (args.Length < 2) {
-                Console.WriteLine("{\"error\":\"cred-read requires <target>\"}");
-                return 1;
+        private static string HandleCredRead(string[] args) {
+            int targetIdx = (args.Length > 0 && args[0].ToLowerInvariant() == "cred-read") ? 1 : 0;
+            if (args.Length <= targetIdx) {
+                return "{\"error\":\"cred-read requires <target>\"}";
             }
 
-            string target = args[1];
+            string target = args[targetIdx];
             IntPtr credPtr;
             if (CredRead(target, CRED_TYPE_GENERIC, 0, out credPtr)) {
                 try {
@@ -230,48 +274,43 @@ namespace AccountHub.Security {
                         password = Encoding.Unicode.GetString(credBytes);
                     }
 
-                    Console.WriteLine("{\"success\":true,\"found\":true,\"target\":\"" + EscapeJson(cred.TargetName ?? target) +
+                    return "{\"success\":true,\"found\":true,\"target\":\"" + EscapeJson(cred.TargetName ?? target) +
                         "\",\"username\":\"" + EscapeJson(cred.UserName ?? "") +
-                        "\",\"password\":\"" + EscapeJson(password) + "\"}");
-                    return 0;
+                        "\",\"password\":\"" + EscapeJson(password) + "\"}";
                 } finally {
                     CredFree(credPtr);
                 }
             } else {
                 int err = Marshal.GetLastWin32Error();
                 if (err == 1168) { // ERROR_NOT_FOUND
-                    Console.WriteLine("{\"success\":true,\"found\":false,\"target\":\"" + EscapeJson(target) + "\"}");
-                    return 0;
+                    return "{\"success\":true,\"found\":false,\"target\":\"" + EscapeJson(target) + "\"}";
                 }
-                Console.WriteLine("{\"error\":\"CredRead failed with Win32 error " + err + "\"}");
-                return 1;
+                return "{\"error\":\"CredRead failed with Win32 error " + err + "\"}";
             }
         }
 
-        private static int HandleCredDelete(string[] args) {
-            if (args.Length < 2) {
-                Console.WriteLine("{\"error\":\"cred-delete requires <target>\"}");
-                return 1;
+        private static string HandleCredDelete(string[] args) {
+            int targetIdx = (args.Length > 0 && args[0].ToLowerInvariant() == "cred-delete") ? 1 : 0;
+            if (args.Length <= targetIdx) {
+                return "{\"error\":\"cred-delete requires <target>\"}";
             }
 
-            string target = args[1];
+            string target = args[targetIdx];
             bool success = CredDelete(target, CRED_TYPE_GENERIC, 0);
             int err = Marshal.GetLastWin32Error();
-            if (success || err == 1168) { // Deleted or already non-existent
-                Console.WriteLine("{\"success\":true,\"target\":\"" + EscapeJson(target) + "\"}");
-                return 0;
+            if (success || err == 1168) {
+                return "{\"success\":true,\"target\":\"" + EscapeJson(target) + "\"}";
             } else {
-                Console.WriteLine("{\"error\":\"CredDelete failed with Win32 error " + err + "\"}");
-                return 1;
+                return "{\"error\":\"CredDelete failed with Win32 error " + err + "\"}";
             }
         }
 
-        private static int HandleCredList(string[] args) {
-            string prefix = args.Length > 1 ? args[1] : "AccountHub";
+        private static string HandleCredList(string[] args) {
+            int prefixIdx = (args.Length > 0 && args[0].ToLowerInvariant() == "cred-list") ? 1 : 0;
+            string prefix = args.Length > prefixIdx ? args[prefixIdx] : "Quickswap";
             int count;
             IntPtr pArray;
 
-            // Filter can be "AccountHub*"
             string filter = prefix.EndsWith("*") ? prefix : prefix + "*";
             if (CredEnumerate(filter, 0, out count, out pArray)) {
                 try {
@@ -283,23 +322,23 @@ namespace AccountHub.Security {
                                       "\",\"username\":\"" + EscapeJson(cred.UserName ?? "") + "\"}";
                         items.Add(item);
                     }
-                    Console.WriteLine("{\"success\":true,\"credentials\":[" + string.Join(",", items.ToArray()) + "]}");
-                    return 0;
+                    return "{\"success\":true,\"credentials\":[" + string.Join(",", items.ToArray()) + "]}";
                 } finally {
                     CredFree(pArray);
                 }
             } else {
                 int err = Marshal.GetLastWin32Error();
-                if (err == 1168) { // No credentials found matching filter
-                    Console.WriteLine("{\"success\":true,\"credentials\":[]}");
-                    return 0;
+                if (err == 1168) {
+                    return "{\"success\":true,\"credentials\":[]}";
                 }
-                Console.WriteLine("{\"error\":\"CredEnumerate failed with error " + err + "\"}");
-                return 1;
+                return "{\"error\":\"CredEnumerate failed with error " + err + "\"}";
             }
         }
 
-        private static string ReadInput(string[] args, int index) {
+        private static string ReadInput(string[] args, int index, string explicitData) {
+            if (explicitData != null) {
+                return explicitData;
+            }
             if (args.Length > index) {
                 return args[index];
             }
@@ -335,18 +374,18 @@ namespace AccountHub.Security {
             return sb.ToString();
         }
 
-        private static int HandleAutoLoginWindow(string[] args) {
-            if (args.Length < 4) {
-                Console.WriteLine("{\"error\":\"autologin-window requires <windowPattern> <username> <credentialTarget> [timeoutSec]\"}");
-                return 1;
+        private static string HandleAutoLoginWindow(string[] args) {
+            int offset = (args.Length > 0 && args[0].ToLowerInvariant() == "autologin-window") ? 1 : 0;
+            if (args.Length < offset + 3) {
+                return "{\"error\":\"autologin-window requires <windowPattern> <username> <credentialTarget> [timeoutSec]\"}";
             }
 
-            string windowPattern = args[1];
-            string username = args[2];
-            string credTarget = args[3];
+            string windowPattern = args[offset];
+            string username = args[offset + 1];
+            string credTarget = args[offset + 2];
             int timeoutSec = 25;
-            if (args.Length > 4) {
-                int.TryParse(args[4], out timeoutSec);
+            if (args.Length > offset + 3) {
+                int.TryParse(args[offset + 3], out timeoutSec);
             }
 
             // 1. Retrieve password securely from Windows Credential Manager
@@ -366,8 +405,7 @@ namespace AccountHub.Security {
             }
 
             if (string.IsNullOrEmpty(password)) {
-                Console.WriteLine("{\"success\":false,\"error\":\"Credential not found in Windows Credential Manager for target: " + EscapeJson(credTarget) + "\"}");
-                return 1;
+                return "{\"success\":false,\"error\":\"Credential not found in Windows Credential Manager for target: " + EscapeJson(credTarget) + "\"}";
             }
 
             // 2. Poll for target window to appear and be visible
@@ -383,8 +421,7 @@ namespace AccountHub.Security {
             }
 
             if (targetHwnd == IntPtr.Zero) {
-                Console.WriteLine("{\"success\":false,\"error\":\"Window matching '" + EscapeJson(windowPattern) + "' was not found within " + timeoutSec + "s\"}");
-                return 1;
+                return "{\"success\":false,\"error\":\"Window matching '" + EscapeJson(windowPattern) + "' was not found within " + timeoutSec + "s\"}";
             }
 
             // 3. Bring window to foreground
@@ -432,8 +469,7 @@ namespace AccountHub.Security {
                 // Submit Login
                 SendKeys.SendWait("{ENTER}");
 
-                Console.WriteLine("{\"success\":true,\"message\":\"Automated credentials filled and login submitted successfully\"}");
-                return 0;
+                return "{\"success\":true,\"message\":\"Automated credentials filled and login submitted successfully\"}";
             } finally {
                 try {
                     AttachThreadInput(currentThread, targetThread, false);
@@ -473,7 +509,6 @@ namespace AccountHub.Security {
                 int width = r.Right - r.Left;
                 int height = r.Bottom - r.Top;
 
-                // Window must be a real rendered window of substantial size
                 if ((titleMatch || procMatch) && width >= 400 && height >= 350) {
                     found = hWnd;
                     return false;
