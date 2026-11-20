@@ -1,7 +1,7 @@
-﻿import { DatabaseSync } from 'node:sqlite';
+import { DatabaseSync } from 'node:sqlite';
 import fs from 'fs';
 import path from 'path';
-import { SCHEMA_SQL } from './schema';
+import { MigrationRunner } from './migrations/runner';
 import { AppError } from '@quickswap/shared';
 
 export class DatabaseConnection {
@@ -33,8 +33,8 @@ export class DatabaseConnection {
         db.exec('PRAGMA synchronous = NORMAL;');
       }
 
-      // Run initial schema migrations
-      db.exec(SCHEMA_SQL);
+      // Run versioned database migrations (with automatic snapshot backup)
+      MigrationRunner.run(db, dbPath);
 
       this.instance = db;
       this.currentDbPath = dbPath;
@@ -54,6 +54,15 @@ export class DatabaseConnection {
   public static close(): void {
     if (this.instance) {
       try {
+        // Optimize indexes and flush WAL checkpoints on clean shutdown
+        if (this.currentDbPath && this.currentDbPath !== ':memory:') {
+          try {
+            this.instance.exec('PRAGMA optimize;');
+            this.instance.exec('PRAGMA wal_checkpoint(PASSIVE);');
+          } catch {
+            // Ignore optimization pragma errors during close
+          }
+        }
         this.instance.close();
       } catch {
         // Ignore

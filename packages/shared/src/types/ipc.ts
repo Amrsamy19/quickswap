@@ -16,6 +16,15 @@ import { ActivityLogEntry } from './activity';
 import { StoredCredentialMetadata } from './secret';
 import { LaunchResult, ProcessStatus, LaunchHistoryEntry } from './launcher';
 
+export interface DashboardSummary {
+  applications: Application[];
+  accounts: Account[];
+  securityStatus: SecurityStatus;
+  credentials: StoredCredentialMetadata[];
+  activities: ActivityLogEntry[];
+  settings: AppSettings;
+}
+
 export interface SecurityStatus {
   windowsCredManagerAvailable: boolean;
   dpapiAvailable: boolean;
@@ -70,6 +79,17 @@ export interface QuickswapAPI {
   settings: {
     get(): Promise<AppSettings>;
     update(input: UpdateSettingsInput): Promise<AppSettings>;
+  };
+
+  dashboard: {
+    getSummary(): Promise<DashboardSummary>;
+  };
+
+  window: {
+    minimize(): Promise<void>;
+    maximize(): Promise<boolean>;
+    close(): Promise<void>;
+    isMaximized(): Promise<boolean>;
   };
 }
 

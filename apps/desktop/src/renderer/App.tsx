@@ -20,6 +20,9 @@ import { SecurityCenterView } from './features/security/SecurityCenterView';
 import { ActivityView } from './features/activity/ActivityView';
 import { SettingsView } from './features/settings/SettingsView';
 import { AccountModal } from './features/accounts/AccountModal';
+import { AccountWizardModal } from './features/accounts/AccountWizardModal';
+import { TitleBar } from './components/TitleBar';
+import { CommandPalette } from './components/CommandPalette';
 
 export const App: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<NavTab>('dashboard');
@@ -32,27 +35,39 @@ export const App: React.FC = () => {
   const [scanning, setScanning] = useState(false);
   const [selectedAppId, setSelectedAppId] = useState<string | undefined>(undefined);
   const [isAddAccountModalOpen, setIsAddAccountModalOpen] = useState(false);
+  const [privacyMode, setPrivacyMode] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
 
   const api = typeof window !== 'undefined' ? (window.quickswapAPI || window.accountHubAPI) : null;
 
   const loadData = useCallback(async () => {
     if (!api) return;
     try {
-      const [apps, accs, secStatus, creds, acts, setts] = await Promise.all([
-        api.applications.list(),
-        api.accounts.list(),
-        api.security.getStatus(),
-        api.security.listStoredCredentials(),
-        api.activity.list(50),
-        api.settings.get(),
-      ]);
+      if (api.dashboard?.getSummary) {
+        const summary = await api.dashboard.getSummary();
+        setApplications(summary.applications);
+        setAccounts(summary.accounts);
+        setSecurityStatus(summary.securityStatus);
+        setCredentials(summary.credentials);
+        setActivities(summary.activities);
+        setSettings(summary.settings);
+      } else {
+        const [apps, accs, secStatus, creds, acts, setts] = await Promise.all([
+          api.applications.list(),
+          api.accounts.list(),
+          api.security.getStatus(),
+          api.security.listStoredCredentials(),
+          api.activity.list(50),
+          api.settings.get(),
+        ]);
 
-      setApplications(apps);
-      setAccounts(accs);
-      setSecurityStatus(secStatus);
-      setCredentials(creds);
-      setActivities(acts);
-      setSettings(setts);
+        setApplications(apps);
+        setAccounts(accs);
+        setSecurityStatus(secStatus);
+        setCredentials(creds);
+        setActivities(acts);
+        setSettings(setts);
+      }
     } catch (err) {
       console.error('Failed to load Quickswap data:', err);
     }
@@ -61,6 +76,21 @@ export const App: React.FC = () => {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // Global hotkeys for Command Palette (Ctrl+K) and Streamer Privacy Mode (Ctrl+Shift+P)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen((prev) => !prev);
+      } else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'p') {
+        e.preventDefault();
+        setPrivacyMode((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Actions
   const handleScanInstalled = async () => {
@@ -182,97 +212,123 @@ export const App: React.FC = () => {
   const meta = getHeaderMeta();
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#0B0F17] text-slate-100">
-      {/* Sidebar Navigation */}
-      <Sidebar
-        currentTab={currentTab}
-        onSelectTab={(tab) => {
-          setCurrentTab(tab);
-          if (tab !== 'accounts') {
-            setSelectedAppId(undefined);
-          }
-        }}
+    <div className={`flex flex-col h-screen w-screen overflow-hidden bg-[#0B0F17] text-slate-100 ${privacyMode ? 'privacy-mode' : ''}`}>
+      {/* Custom Frameless Window TitleBar */}
+      <TitleBar
+        privacyMode={privacyMode}
+        onTogglePrivacyMode={() => setPrivacyMode((prev) => !prev)}
+        onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
         vaultHealthy={securityStatus?.securityHealth === 'healthy'}
       />
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Header
-          title={meta.title}
-          subtitle={meta.subtitle}
-          onAddAccount={applications.length > 0 ? () => setIsAddAccountModalOpen(true) : undefined}
-          onScanApps={handleScanInstalled}
-          scanning={scanning}
+      <div className="flex-1 flex min-h-0 overflow-hidden">
+        {/* Sidebar Navigation */}
+        <Sidebar
+          currentTab={currentTab}
+          onSelectTab={(tab) => {
+            setCurrentTab(tab);
+            if (tab !== 'accounts') {
+              setSelectedAppId(undefined);
+            }
+          }}
+          vaultHealthy={securityStatus?.securityHealth === 'healthy'}
         />
 
-        <main className="flex-1 overflow-y-auto p-8">
-          {currentTab === 'dashboard' && (
-            <DashboardView
-              applications={applications}
-              accounts={accounts}
-              securityStatus={securityStatus}
-              activities={activities}
-              onNavigateToAccounts={(appId) => {
-                setSelectedAppId(appId);
-                setCurrentTab('accounts');
-              }}
-              onNavigateToApplications={() => setCurrentTab('applications')}
-              onNavigateToSecurity={() => setCurrentTab('security')}
-              onLaunchAccount={handleLaunchAccount}
-            />
-          )}
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          <Header
+            title={meta.title}
+            subtitle={meta.subtitle}
+            onAddAccount={applications.length > 0 ? () => setIsAddAccountModalOpen(true) : undefined}
+            onScanApps={handleScanInstalled}
+            scanning={scanning}
+          />
 
-          {currentTab === 'applications' && (
-            <ApplicationsView
-              applications={applications}
-              onRegisterApplication={handleRegisterApplication}
-              onRemoveApplication={handleRemoveApplication}
-              onScanInstalled={handleScanInstalled}
-              onSelectApplication={(id) => {
-                setSelectedAppId(id);
-                setCurrentTab('accounts');
-              }}
-              scanning={scanning}
-            />
-          )}
+          <main className="flex-1 overflow-y-auto p-8">
+            {currentTab === 'dashboard' && (
+              <DashboardView
+                applications={applications}
+                accounts={accounts}
+                securityStatus={securityStatus}
+                activities={activities}
+                onNavigateToAccounts={(appId) => {
+                  setSelectedAppId(appId);
+                  setCurrentTab('accounts');
+                }}
+                onNavigateToApplications={() => setCurrentTab('applications')}
+                onNavigateToSecurity={() => setCurrentTab('security')}
+                onLaunchAccount={handleLaunchAccount}
+              />
+            )}
 
-          {currentTab === 'accounts' && (
-            <AccountsView
-              applications={applications}
-              accounts={accounts}
-              selectedAppId={selectedAppId}
-              onCreateAccount={handleCreateAccount}
-              onUpdateAccount={handleUpdateAccount}
-              onDeleteAccount={handleDeleteAccount}
-              onSetDefault={handleSetDefault}
-              onToggleFavorite={handleToggleFavorite}
-              onLaunchAccount={handleLaunchAccount}
-              onRefreshData={loadData}
-            />
-          )}
+            {currentTab === 'applications' && (
+              <ApplicationsView
+                applications={applications}
+                onRegisterApplication={handleRegisterApplication}
+                onRemoveApplication={handleRemoveApplication}
+                onScanInstalled={handleScanInstalled}
+                onSelectApplication={(id) => {
+                  setSelectedAppId(id);
+                  setCurrentTab('accounts');
+                }}
+                scanning={scanning}
+              />
+            )}
 
-          {currentTab === 'security' && (
-            <SecurityCenterView
-              status={securityStatus}
-              credentials={credentials}
-              onRefresh={loadData}
-              onVerifyIntegrity={handleVerifyIntegrity}
-            />
-          )}
+            {currentTab === 'accounts' && (
+              <AccountsView
+                applications={applications}
+                accounts={accounts}
+                selectedAppId={selectedAppId}
+                onCreateAccount={handleCreateAccount}
+                onUpdateAccount={handleUpdateAccount}
+                onDeleteAccount={handleDeleteAccount}
+                onSetDefault={handleSetDefault}
+                onToggleFavorite={handleToggleFavorite}
+                onLaunchAccount={handleLaunchAccount}
+                onRefreshData={loadData}
+              />
+            )}
 
-          {currentTab === 'activity' && (
-            <ActivityView activities={activities} onClear={handleClearActivity} />
-          )}
+            {currentTab === 'security' && (
+              <SecurityCenterView
+                status={securityStatus}
+                credentials={credentials}
+                onRefresh={loadData}
+                onVerifyIntegrity={handleVerifyIntegrity}
+              />
+            )}
 
-          {currentTab === 'settings' && (
-            <SettingsView settings={settings} onUpdate={handleUpdateSettings} />
-          )}
-        </main>
+            {currentTab === 'activity' && (
+              <ActivityView activities={activities} onClear={handleClearActivity} />
+            )}
+
+            {currentTab === 'settings' && (
+              <SettingsView settings={settings} onUpdate={handleUpdateSettings} />
+            )}
+          </main>
+        </div>
       </div>
 
-      {/* Quick Add Account Modal */}
+      {/* Command Palette (Ctrl+K) */}
+      <CommandPalette
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        applications={applications}
+        accounts={accounts}
+        onLaunchAccount={handleLaunchAccount}
+        onNavigateTab={(tab, appId) => {
+          if (appId) setSelectedAppId(appId);
+          setCurrentTab(tab);
+        }}
+        onAddAccount={() => setIsAddAccountModalOpen(true)}
+        onScanApps={handleScanInstalled}
+        onTogglePrivacy={() => setPrivacyMode((prev) => !prev)}
+      />
+
+      {/* Adaptive Add Account Wizard */}
       {applications.length > 0 && (
-        <AccountModal
+        <AccountWizardModal
           isOpen={isAddAccountModalOpen}
           onClose={() => setIsAddAccountModalOpen(false)}
           applications={applications}

@@ -13,6 +13,7 @@ coverage
 
 # Database and local data
 *.db
+*.db.*
 *.db-journal
 *.db-wal
 *.db-shm

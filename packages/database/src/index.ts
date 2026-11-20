@@ -1,5 +1,7 @@
 export * from './schema';
 export * from './connection';
+export * from './migrations/types';
+export * from './migrations/runner';
 export * from './repositories/applications.repository';
 export * from './repositories/accounts.repository';
 export * from './repositories/account-secrets.repository';

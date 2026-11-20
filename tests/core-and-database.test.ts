@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { DatabaseConnection } from '../packages/database/src';
+import { DatabaseConnection, MigrationRunner } from '../packages/database/src';
 import {
   ApplicationService,
   AccountService,
@@ -171,5 +171,11 @@ describe('Milestone 1 & 2: Database and Application/Account Services', () => {
     const integrity = await CoreSecurityService.verifyIntegrity();
     expect(integrity.valid).toBe(true);
     expect(integrity.issues.length).toBe(0);
+  });
+
+  it('runs versioned database migrations and verifies schema_version table', () => {
+    const db = DatabaseConnection.getInstance();
+    const version = MigrationRunner.getCurrentVersion(db);
+    expect(version).toBeGreaterThanOrEqual(2);
   });
 });

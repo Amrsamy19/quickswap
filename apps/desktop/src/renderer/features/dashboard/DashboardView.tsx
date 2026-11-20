@@ -18,6 +18,8 @@ import {
   Zap,
   AlertTriangle,
   CheckCircle,
+  Plus,
+  Clock,
 } from 'lucide-react';
 import { AppIcon } from '../../components/AppIcon';
 
@@ -42,8 +44,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onNavigateToSecurity,
   onLaunchAccount,
 }) => {
-  const favoriteApps = applications.filter((a) => a.isFavorite);
   const favoriteAccounts = accounts.filter((a) => a.isFavorite || a.isDefault);
+  const displayAccounts = favoriteAccounts.length > 0 ? favoriteAccounts : accounts.slice(0, 6);
 
   const [launchingId, setLaunchingId] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -54,7 +56,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     message: string;
   } | null>(null);
 
-  const api = typeof window !== 'undefined' ? window.accountHubAPI : null;
+  const api = typeof window !== 'undefined' ? (window.quickswapAPI || window.accountHubAPI) : null;
 
   const handleLaunch = async (accId: string, force: boolean = false) => {
     try {
@@ -70,7 +72,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           message: res.message || 'The application is already running.',
         });
       } else if (res?.autoLoginTriggered) {
-        setToastMessage('Riot Client launched! Auto-filling credentials and logging in automatically...');
+        setToastMessage('Target client launched! Auto-filling credentials automatically...');
         setTimeout(() => setToastMessage(null), 5000);
       } else if (res?.success) {
         setToastMessage(res.message || 'Application launched successfully!');
@@ -102,252 +104,284 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     }
   };
 
+  // Group activity logs into Today and Yesterday
+  const now = new Date();
+  const todayStr = now.toDateString();
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = yesterday.toDateString();
+
+  const todayActivities = activities.filter(
+    (a) => new Date(a.createdAt).toDateString() === todayStr
+  );
+  const olderActivities = activities.filter(
+    (a) => new Date(a.createdAt).toDateString() !== todayStr
+  );
+
   return (
     <div className="space-y-6">
-      {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {/* Total Apps */}
-        <div
-          onClick={onNavigateToApplications}
-          className="bg-[#161F30]/70 border border-slate-800 rounded-xl p-5 hover:border-blue-500/40 hover:bg-[#161F30] transition-all cursor-pointer group"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-400">Applications</span>
-            <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 group-hover:bg-blue-500/20">
-              <Gamepad2 className="w-4 h-4" />
-            </div>
+      {/* 1. Slim Stats Strip (44px) - Saves vertical real estate */}
+      <div className="bg-[#111827]/90 border border-slate-800/90 rounded-xl px-4 py-2.5 flex items-center justify-between text-xs backdrop-blur-sm shadow-sm">
+        <div className="flex items-center gap-6 divide-x divide-slate-800">
+          <div
+            onClick={onNavigateToApplications}
+            className="flex items-center gap-2 cursor-pointer hover:text-blue-400 transition-colors"
+          >
+            <Gamepad2 className="w-3.5 h-3.5 text-blue-400" />
+            <span className="font-semibold text-white">{applications.length}</span>
+            <span className="text-slate-400 text-[11px]">Applications</span>
           </div>
-          <div className="text-2xl font-bold text-white mt-2">{applications.length}</div>
-          <div className="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
-            <span>{applications.filter((a) => a.isInstalled).length} installed</span>
-            <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity ml-auto text-blue-400" />
+
+          <div
+            onClick={() => onNavigateToAccounts()}
+            className="flex items-center gap-2 pl-6 cursor-pointer hover:text-indigo-400 transition-colors"
+          >
+            <Users className="w-3.5 h-3.5 text-indigo-400" />
+            <span className="font-semibold text-white">{accounts.length}</span>
+            <span className="text-slate-400 text-[11px]">
+              Accounts ({favoriteAccounts.length} pinned)
+            </span>
+          </div>
+
+          <div
+            onClick={onNavigateToSecurity}
+            className="flex items-center gap-2 pl-6 cursor-pointer hover:text-cyan-400 transition-colors hidden sm:flex"
+          >
+            <KeyRound className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="font-semibold text-white">
+              {securityStatus?.activeSecretReferences || 0}
+            </span>
+            <span className="text-slate-400 text-[11px]">Vault Secrets (WinCred + DPAPI)</span>
           </div>
         </div>
 
-        {/* Total Accounts */}
-        <div
-          onClick={() => onNavigateToAccounts()}
-          className="bg-[#161F30]/70 border border-slate-800 rounded-xl p-5 hover:border-indigo-500/40 hover:bg-[#161F30] transition-all cursor-pointer group"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-400">Total Accounts</span>
-            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400 group-hover:bg-indigo-500/20">
-              <Users className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl font-bold text-white mt-2">{accounts.length}</div>
-          <div className="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
-            <span>{favoriteAccounts.length} favorites / pinned</span>
-            <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity ml-auto text-indigo-400" />
-          </div>
-        </div>
-
-        {/* Protected Credentials */}
         <div
           onClick={onNavigateToSecurity}
-          className="bg-[#161F30]/70 border border-slate-800 rounded-xl p-5 hover:border-cyan-500/40 hover:bg-[#161F30] transition-all cursor-pointer group"
+          className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
         >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-400">Vault Secrets</span>
-            <div className="w-8 h-8 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-400 group-hover:bg-cyan-500/20">
-              <KeyRound className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl font-bold text-white mt-2">
-            {securityStatus?.activeSecretReferences || 0}
-          </div>
-          <div className="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
-            <span>WinCred + DPAPI protected</span>
-            <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity ml-auto text-cyan-400" />
-          </div>
-        </div>
-
-        {/* Security Health */}
-        <div
-          onClick={onNavigateToSecurity}
-          className="bg-[#161F30]/70 border border-slate-800 rounded-xl p-5 hover:border-emerald-500/40 hover:bg-[#161F30] transition-all cursor-pointer group"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-400">Security Health</span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 group-hover:bg-emerald-500/20">
-              <ShieldCheck className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl font-bold text-emerald-400 mt-2 capitalize">
-            {securityStatus?.securityHealth || 'Healthy'}
-          </div>
-          <div className="text-[11px] text-slate-400 mt-1">Zero plaintext secrets stored</div>
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="font-medium text-emerald-400 text-[11px]">
+            Vault {securityStatus?.securityHealth || 'Healthy'}
+          </span>
         </div>
       </div>
 
-      {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column: Pinned / Favorite Accounts */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Favorite Apps */}
-          <div className="bg-[#111827] border border-slate-800/80 rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-white flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-cyan-400" />
-                <span>Featured Applications</span>
-              </h2>
-              <button
-                onClick={onNavigateToApplications}
-                className="text-xs text-blue-400 hover:text-blue-300 font-medium"
-              >
-                View all ({applications.length})
-              </button>
-            </div>
-
-            {applications.length === 0 ? (
-              <div className="text-center py-8 text-slate-400 text-xs">
-                No applications detected yet. Click "Scan Installed Apps" above!
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {applications.slice(0, 6).map((app) => (
-                  <div
-                    key={app.id}
-                    onClick={() => onNavigateToAccounts(app.id)}
-                    className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-blue-500/40 hover:bg-slate-800/40 transition-all cursor-pointer flex flex-col justify-between"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-2 truncate">
-                        <AppIcon app={app} size="sm" />
-                        <span className="font-semibold text-sm text-white truncate">{app.name}</span>
-                      </div>
-                      {app.isFavorite && <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400 flex-shrink-0" />}
-                    </div>
-                    <div className="flex items-center justify-between mt-3 text-[11px] text-slate-400">
-                      <span className="capitalize">{app.category}</span>
-                      <span className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 font-medium">
-                        {app.accountCount || 0} accounts
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+      {/* 2. Hero Quick Access Accounts (Top Billing) */}
+      <div className="bg-[#111827] border border-slate-800/80 rounded-2xl p-6 shadow-xl">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+            <h2 className="text-sm font-bold text-white tracking-tight">
+              Quick Access Accounts
+            </h2>
+            <span className="text-[11px] text-slate-400 hidden sm:inline">
+              — 1-click launch your pinned profiles
+            </span>
           </div>
-
-          {/* Quick Accounts */}
-          <div className="bg-[#111827] border border-slate-800/80 rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-white flex items-center gap-2">
-                <Star className="w-4 h-4 text-amber-400" />
-                <span>Quick Access Accounts</span>
-              </h2>
-              <button
-                onClick={() => onNavigateToAccounts()}
-                className="text-xs text-blue-400 hover:text-blue-300 font-medium"
-              >
-                Manage all ({accounts.length})
-              </button>
-            </div>
-
-            {accounts.length === 0 ? (
-              <div className="text-center py-8 text-slate-400 text-xs">
-                No accounts registered yet. Click "Add Account" to create your first account!
-              </div>
-            ) : (
-              <div className="space-y-2.5">
-                {accounts.slice(0, 5).map((acc) => {
-                  const parentApp = applications.find((a) => a.id === acc.applicationId);
-                  return (
-                    <div
-                      key={acc.id}
-                      className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800/80 flex items-center justify-between hover:bg-slate-800/40 transition-all"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="relative flex-shrink-0">
-                          <div className="w-10 h-10 rounded-xl bg-blue-600/15 border border-blue-500/25 flex items-center justify-center font-bold text-xs text-blue-400">
-                            {acc.displayName.slice(0, 2).toUpperCase()}
-                          </div>
-                          {parentApp && (
-                            <div className="absolute -bottom-1 -right-1">
-                              <AppIcon app={parentApp} size="sm" className="!w-4 !h-4 !rounded-md" />
-                            </div>
-                          )}
-                        </div>
-                        <div>
-                          <div className="font-semibold text-sm text-white flex items-center gap-2">
-                            <span>{acc.displayName}</span>
-                            {acc.isDefault && (
-                              <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-medium">
-                                Default
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5">
-                            {parentApp && <AppIcon app={parentApp} size="sm" className="!w-3.5 !h-3.5 !rounded" />}
-                            <span>{parentApp?.name || 'App'}</span>
-                            {acc.region && <span>• {acc.region}</span>}
-                            {acc.username && <span>• {acc.username}</span>}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        {acc.hasSession ? (
-                          <span
-                            title="1-Click Session Linked (DPAPI Protected)"
-                            className="p-1 rounded-md bg-emerald-500/10 text-emerald-400"
-                          >
-                            <Zap className="w-3.5 h-3.5 fill-current" />
-                          </span>
-                        ) : acc.hasCredentials ? (
-                          <span
-                            title="Protected in Windows Credential Manager"
-                            className="p-1 rounded-md bg-blue-500/10 text-blue-400"
-                          >
-                            <Shield className="w-3.5 h-3.5" />
-                          </span>
-                        ) : null}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleLaunch(acc.id);
-                          }}
-                          disabled={launchingId === acc.id}
-                          title="Launch Application With This Account"
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-semibold text-xs shadow-sm shadow-emerald-600/20 transition-all cursor-pointer disabled:opacity-50"
-                        >
-                          <Play className={`w-3 h-3 fill-current ${launchingId === acc.id ? 'animate-spin' : ''}`} />
-                          <span>{launchingId === acc.id ? 'Starting...' : 'Launch'}</span>
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+          <button
+            onClick={() => onNavigateToAccounts()}
+            className="text-xs text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1"
+          >
+            <span>View all ({accounts.length})</span>
+            <ArrowRight className="w-3 h-3" />
+          </button>
         </div>
 
-        {/* Right Column: Recent Activity Feed */}
-        <div className="bg-[#111827] border border-slate-800/80 rounded-2xl p-6 flex flex-col">
-          <h2 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>Audit History</span>
-          </h2>
+        {accounts.length === 0 ? (
+          <div className="text-center py-10 rounded-xl bg-slate-900/40 border border-dashed border-slate-800 p-6">
+            <Users className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+            <div className="text-xs font-semibold text-slate-300">No accounts registered yet</div>
+            <div className="text-[11px] text-slate-500 mt-1 max-w-sm mx-auto">
+              Scan installed applications or click "Add Account" to configure your first profile.
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {displayAccounts.map((acc) => {
+              const parentApp = applications.find((a) => a.id === acc.applicationId);
+              const isLaunching = launchingId === acc.id;
 
-          {activities.length === 0 ? (
+              return (
+                <div
+                  key={acc.id}
+                  className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 hover:border-blue-500/40 hover:bg-slate-900/90 transition-all flex flex-col justify-between group"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="relative flex-shrink-0">
+                        {parentApp ? (
+                          <AppIcon app={parentApp} size="md" />
+                        ) : (
+                          <div className="w-8 h-8 rounded-xl bg-blue-600/20 text-blue-400 font-bold flex items-center justify-center text-xs">
+                            {acc.displayName.slice(0, 2).toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-bold text-sm text-white truncate flex items-center gap-1.5">
+                          <span>{acc.displayName}</span>
+                          {acc.isDefault && (
+                            <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-medium">
+                              Default
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[11px] text-slate-400 truncate flex items-center gap-1 mt-0.5">
+                          <span>{parentApp?.name || 'App'}</span>
+                          {acc.username && (
+                            <span className="sensitive-text font-mono truncate">
+                              • {acc.username}
+                            </span>
+                          )}
+                          {acc.region && <span>[{acc.region}]</span>}
+                        </div>
+                      </div>
+                    </div>
+
+                    {acc.hasSession ? (
+                      <span
+                        title="DPAPI Session Hot-Swap Supported"
+                        className="p-1 rounded bg-emerald-500/10 text-emerald-400 flex-shrink-0"
+                      >
+                        <Zap className="w-3.5 h-3.5 fill-current" />
+                      </span>
+                    ) : acc.hasCredentials ? (
+                      <span
+                        title="Hardware Stored in Windows Credential Manager"
+                        className="p-1 rounded bg-blue-500/10 text-blue-400 flex-shrink-0"
+                      >
+                        <Shield className="w-3.5 h-3.5" />
+                      </span>
+                    ) : null}
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between">
+                    <span className="text-[10px] text-slate-500 font-mono">
+                      {acc.lastUsedAt
+                        ? `Used ${new Date(acc.lastUsedAt).toLocaleDateString()}`
+                        : 'Ready to launch'}
+                    </span>
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleLaunch(acc.id);
+                      }}
+                      disabled={isLaunching}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs font-semibold shadow-md shadow-blue-500/20 transition-all cursor-pointer disabled:opacity-50"
+                    >
+                      <Play className={`w-3 h-3 fill-current ${isLaunching ? 'animate-spin' : ''}`} />
+                      <span>{isLaunching ? 'Launching...' : 'Launch'}</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* 3. Featured Applications & Recent Activity Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left: Application Library Preview */}
+        <div className="lg:col-span-2 bg-[#111827] border border-slate-800/80 rounded-2xl p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-semibold text-white flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-cyan-400" />
+              <span>Application Library</span>
+            </h2>
+            <button
+              onClick={onNavigateToApplications}
+              className="text-xs text-blue-400 hover:text-blue-300 font-medium"
+            >
+              View all ({applications.length})
+            </button>
+          </div>
+
+          {applications.length === 0 ? (
             <div className="text-center py-8 text-slate-400 text-xs">
-              No activity logs recorded yet.
+              No applications registered yet.
             </div>
           ) : (
-            <div className="space-y-3.5 overflow-y-auto max-h-[420px] pr-1">
-              {activities.slice(0, 10).map((act) => (
-                <div key={act.id} className="text-xs border-l-2 border-blue-500/40 pl-3 py-0.5">
-                  <div className="font-medium text-slate-200">{act.title}</div>
-                  {act.details && (
-                    <div className="text-[11px] text-slate-400 mt-0.5 truncate">{act.details}</div>
-                  )}
-                  <div className="text-[10px] text-slate-400 mt-1">
-                    {new Date(act.createdAt).toLocaleTimeString()}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {applications.slice(0, 6).map((app) => (
+                <div
+                  key={app.id}
+                  onClick={() => onNavigateToAccounts(app.id)}
+                  className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-blue-500/40 hover:bg-slate-800/40 transition-all cursor-pointer flex flex-col justify-between"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-2 truncate">
+                      <AppIcon app={app} size="sm" />
+                      <span className="font-semibold text-xs text-white truncate">{app.name}</span>
+                    </div>
+                    {app.isFavorite && (
+                      <Star className="w-3 h-3 text-amber-400 fill-amber-400 flex-shrink-0" />
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between mt-3 text-[10px] text-slate-400">
+                    <span className="capitalize">{app.category}</span>
+                    <span className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 font-medium">
+                      {app.accountCount || 0} accounts
+                    </span>
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+
+        {/* Right: Humanized Audit Trail */}
+        <div className="bg-[#111827] border border-slate-800/80 rounded-2xl p-6 flex flex-col">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-semibold text-white flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              <span>Audit Trail</span>
+            </h2>
+            <Clock className="w-3.5 h-3.5 text-slate-500" />
+          </div>
+
+          {activities.length === 0 ? (
+            <div className="text-center py-8 text-slate-400 text-xs">
+              No activity logs recorded.
+            </div>
+          ) : (
+            <div className="space-y-3 overflow-y-auto max-h-[300px] pr-1">
+              {todayActivities.length > 0 && (
+                <div>
+                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+                    Today
+                  </div>
+                  <div className="space-y-2">
+                    {todayActivities.slice(0, 5).map((act) => (
+                      <div key={act.id} className="text-xs border-l-2 border-blue-500/40 pl-3 py-0.5">
+                        <div className="font-medium text-slate-200">{act.title}</div>
+                        <div className="text-[10px] text-slate-500 font-mono mt-0.5">
+                          {new Date(act.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {olderActivities.length > 0 && (
+                <div className="pt-2">
+                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+                    Earlier
+                  </div>
+                  <div className="space-y-2">
+                    {olderActivities.slice(0, 5).map((act) => (
+                      <div key={act.id} className="text-xs border-l-2 border-slate-700 pl-3 py-0.5">
+                        <div className="font-medium text-slate-300">{act.title}</div>
+                        <div className="text-[10px] text-slate-500 font-mono mt-0.5">
+                          {new Date(act.createdAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -361,7 +395,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       )}
 
-      {/* Already Running Warning Dialog */}
+      {/* Already Running Conflict Dialog */}
       {alreadyRunningWarning && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
           <div className="bg-[#111827] border border-amber-500/30 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl">

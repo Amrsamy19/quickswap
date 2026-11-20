@@ -12,6 +12,16 @@ Quickswap is designed around strict **local-first** and **security-first** princ
 - **Cascading Purge:** Deleting an account immediately wipes its physical credentials from Windows Credential Manager and DPAPI.
 - **Context Isolation & Hardened IPC:** Electron renderer has zero direct access to Node.js, file system, or Windows APIs; it communicates through a typed and validated preload bridge (`window.quickswapAPI`).
 
+### Threat Model & Trust Boundaries
+
+| Threat Actor / Scenario | Impact | Mitigation Status |
+| :--- | :--- | :--- |
+| **Offline Disk Theft** | Attacker accesses hard drive without user Windows login | **Mitigated:** DPAPI and Windows Credential Manager are cryptographically tied to the user's Windows master key. SQLite contains zero plaintext passwords or tokens. |
+| **Network Eavesdropping** | Attacker snoops local/Wi-Fi network traffic | **Mitigated:** Quickswap is 100% offline with zero cloud telemetry or external backend connections. |
+| **Accidental Clipboard Theft** | Malicious background process inspects clipboard | **Mitigated:** Passwords copied to the clipboard are automatically purged after 30 seconds, checking that the clipboard content still matches before clearing. |
+| **Same-User Process Inspection** | Malicious app running under the same Windows account | **Hardened in v2.0:** All secret payloads are transmitted via pipe (`stdin`), eliminating exposure to process listing arguments (`tasklist` / Process Explorer). |
+| **Kernel / OS Compromise** | Attacker with Ring 0 or kernel driver access | **Out of Scope:** Fundamental OS kernel compromise cannot be mitigated by user-space desktop applications. |
+
 ## Monorepo Packages
 
 ```text

@@ -17,6 +17,7 @@ import {
   LaunchResult,
   ProcessStatus,
   LaunchHistoryEntry,
+  DashboardSummary,
   IPC_CHANNELS,
 } from '@quickswap/shared';
 
@@ -86,6 +87,17 @@ export const quickswapAPI: QuickswapAPI = {
     get: (): Promise<AppSettings> => ipcRenderer.invoke(IPC_CHANNELS.SETTINGS_GET),
     update: (input: UpdateSettingsInput): Promise<AppSettings> =>
       ipcRenderer.invoke(IPC_CHANNELS.SETTINGS_UPDATE, input),
+  },
+
+  dashboard: {
+    getSummary: (): Promise<DashboardSummary> => ipcRenderer.invoke(IPC_CHANNELS.DASHBOARD_GET_SUMMARY),
+  },
+
+  window: {
+    minimize: (): Promise<void> => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_MINIMIZE),
+    maximize: (): Promise<boolean> => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_MAXIMIZE),
+    close: (): Promise<void> => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_CLOSE),
+    isMaximized: (): Promise<boolean> => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_IS_MAXIMIZED),
   },
 };
 

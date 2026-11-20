@@ -18,6 +18,8 @@ function createWindow(): void {
     minWidth: 960,
     minHeight: 640,
     backgroundColor: '#0B0F17',
+    frame: false, // Frameless custom window bar for modern gaming/security UI
+    titleBarStyle: 'hidden',
     autoHideMenuBar: true,
     show: false,
     webPreferences: {
@@ -26,6 +28,14 @@ function createWindow(): void {
       nodeIntegration: false,
       sandbox: false,
     },
+  });
+
+  // Security Hardening: Block unauthorized external window open and restrict navigation
+  mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    if (!url.startsWith('http://localhost') && !url.startsWith('file://')) {
+      event.preventDefault();
+    }
   });
 
   // Load dev server or production build

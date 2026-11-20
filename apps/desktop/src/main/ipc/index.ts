@@ -3,6 +3,8 @@ import { registerAccountIpcHandlers } from './accounts.ipc';
 import { registerSecurityIpcHandlers } from './security.ipc';
 import { registerActivityIpcHandlers, registerSettingsIpcHandlers } from './activity.ipc';
 import { registerLauncherIpcHandlers } from './launcher.ipc';
+import { registerDashboardIpcHandlers } from './dashboard.ipc';
+import { registerWindowIpcHandlers } from './window.ipc';
 
 export function registerAllIpcHandlers(): void {
   registerApplicationIpcHandlers();
@@ -11,4 +13,6 @@ export function registerAllIpcHandlers(): void {
   registerActivityIpcHandlers();
   registerSettingsIpcHandlers();
   registerLauncherIpcHandlers();
+  registerDashboardIpcHandlers();
+  registerWindowIpcHandlers();
 }

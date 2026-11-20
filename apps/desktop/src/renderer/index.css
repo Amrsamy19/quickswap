@@ -24,3 +24,23 @@
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(59, 130, 246, 0.6);
 }
+
+/* Electron Draggable Window Region */
+.app-drag {
+  -webkit-app-region: drag;
+}
+
+.no-drag {
+  -webkit-app-region: no-drag;
+}
+
+/* Streamer Privacy Mode Blur */
+.privacy-mode .sensitive-text {
+  filter: blur(5px);
+  user-select: none;
+  transition: filter 0.2s ease-in-out;
+}
+
+.privacy-mode .sensitive-text:hover {
+  filter: blur(2px);
+}

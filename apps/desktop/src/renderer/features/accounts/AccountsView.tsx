@@ -21,6 +21,8 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { AccountModal } from './AccountModal';
+import { AccountWizardModal } from './AccountWizardModal';
+import { UndoToast } from '../../components/UndoToast';
 import { AppIcon } from '../../components/AppIcon';
 
 interface AccountsViewProps {
@@ -58,8 +60,10 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
   const [search, setSearch] = useState('');
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [pendingDeleteAccount, setPendingDeleteAccount] = useState<Account | null>(null);
   const [alreadyRunningWarning, setAlreadyRunningWarning] = useState<{
     accountId: string;
     appName: string;
@@ -210,6 +214,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
   };
 
   const filteredAccounts = accounts.filter((acc) => {
+    if (pendingDeleteAccount && acc.id === pendingDeleteAccount.id) return false;
     const matchesApp = appFilter === 'all' || acc.applicationId === appFilter;
     const matchesSearch =
       acc.displayName.toLowerCase().includes(search.toLowerCase()) ||
@@ -225,13 +230,30 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
 
   const handleCreate = () => {
     setEditingAccount(null);
-    setIsModalOpen(true);
+    setIsWizardOpen(true);
   };
 
-  const handleConfirmDelete = async () => {
+  const handleConfirmDelete = () => {
     if (deleteConfirmId) {
-      await onDeleteAccount(deleteConfirmId);
+      const acc = accounts.find((a) => a.id === deleteConfirmId);
+      if (acc) {
+        setPendingDeleteAccount(acc);
+      }
       setDeleteConfirmId(null);
+    }
+  };
+
+  const handleExecuteUndoDelete = () => {
+    setPendingDeleteAccount(null);
+    setToastMessage('Account deletion aborted.');
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  const handleTimeoutDelete = async () => {
+    if (pendingDeleteAccount) {
+      const id = pendingDeleteAccount.id;
+      setPendingDeleteAccount(null);
+      await onDeleteAccount(id);
     }
   };
 
@@ -342,7 +364,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
                               </span>
                             )}
                           </div>
-                          <div className="text-[11px] text-slate-400 font-mono mt-0.5">
+                          <div className="text-[11px] text-slate-400 font-mono mt-0.5 sensitive-text">
                             {acc.username || 'No login ID'}
                           </div>
                         </div>
@@ -743,6 +765,25 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Adaptive Add Account Wizard */}
+      <AccountWizardModal
+        isOpen={isWizardOpen}
+        onClose={() => setIsWizardOpen(false)}
+        applications={applications}
+        initialApplicationId={appFilter !== 'all' ? appFilter : selectedAppId}
+        onSubmit={onCreateAccount}
+      />
+
+      {/* 5-Second Undo Toast on Account Deletion */}
+      {pendingDeleteAccount && (
+        <UndoToast
+          message={`Account "${pendingDeleteAccount.displayName}" scheduled for permanent purge.`}
+          durationSeconds={5}
+          onUndo={handleExecuteUndoDelete}
+          onTimeout={handleTimeoutDelete}
+        />
       )}
     </div>
   );

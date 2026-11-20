@@ -152,4 +152,32 @@ describe('AccountHub Security Package (Windows Native Credential Manager & DPAPI
       });
     }).toThrow(/Security breach/);
   });
+
+  it('verifies MockNativeBridge enables isolated in-memory execution', async () => {
+    const { MockNativeBridge } = await import('../packages/security/src/native/native-bridge');
+    const mock = new MockNativeBridge();
+
+    // 1. Status
+    const status = await mock.execute('status');
+    expect(status.windowsCredManager).toBe(true);
+    expect(status.dpapi).toBe(true);
+
+    // 2. DPAPI Protect and Unprotect
+    const enc = await mock.execute('dpapi-protect', [], 'SecretSessionToken456');
+    expect(enc.success).toBe(true);
+    const dec = await mock.execute('dpapi-unprotect', [], enc.data);
+    expect(dec.success).toBe(true);
+    expect(dec.data).toBe('SecretSessionToken456');
+
+    // 3. Credential CRUD
+    await mock.execute('cred-write', ['Quickswap/test/pwd', 'user1'], 'SecretPass!');
+    const read = await mock.execute('cred-read', ['Quickswap/test/pwd']);
+    expect(read.found).toBe(true);
+    expect(read.username).toBe('user1');
+    expect(read.password).toBe('SecretPass!');
+
+    await mock.execute('cred-delete', ['Quickswap/test/pwd']);
+    const read2 = await mock.execute('cred-read', ['Quickswap/test/pwd']);
+    expect(read2.found).toBe(false);
+  });
 });
