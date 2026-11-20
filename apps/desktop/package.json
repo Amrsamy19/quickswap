@@ -13,7 +13,7 @@
     "build": "pnpm build:electron && pnpm build:renderer",
     "package:win": "pnpm build && electron-builder --config electron-builder.json --win",
     "start": "node ./scripts/start.js",
-    "lint": "tsc --noEmit && tsc --project tsconfig.electron.json --noEmit",
+    "lint": "oxlint",
     "typecheck": "tsc --noEmit && tsc --project tsconfig.electron.json --noEmit"
   },
   "dependencies": {

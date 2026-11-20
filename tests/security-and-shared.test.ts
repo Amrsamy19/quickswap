@@ -1,10 +1,8 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, afterAll } from 'vitest';
 import {
   RegisterApplicationSchema,
   CreateAccountSchema,
-  UpdateAccountSchema,
   AppError,
-  IPC_CHANNELS,
 } from '../packages/shared/src';
 import {
   NativeBridge,

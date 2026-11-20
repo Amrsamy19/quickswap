@@ -7,7 +7,6 @@ import {
   aesGcmDecrypt,
   EncryptedEnvelope,
   CredentialVault,
-  VaultGate,
   DEFAULT_PBKDF2_ITERATIONS,
   KEY_LENGTH_BYTES,
   SALT_LENGTH_BYTES,
@@ -401,7 +400,7 @@ export class BackupService {
       }
 
       return payload;
-    } catch (err: any) {
+    } catch {
       kek.fill(0);
       throw new AppError(
         'SECURITY_VAULT_ERROR',

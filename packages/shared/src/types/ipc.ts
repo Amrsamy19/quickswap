@@ -8,8 +8,6 @@ import {
   CreateAccountInput,
   UpdateAccountInput,
   AccountFilter,
-  AuthMethod,
-  AuthState,
 } from './account';
 import { AppSettings, UpdateSettingsInput } from './settings';
 import { ActivityLogEntry, AuditLogVerificationResult } from './activity';

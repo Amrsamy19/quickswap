@@ -13,10 +13,11 @@
     "compile:sec": "powershell -ExecutionPolicy Bypass -File ./packages/security/scripts/compile-helper.ps1",
     "test": "vitest run",
     "typecheck": "tsc --build && pnpm --filter @quickswap/desktop typecheck && tsc --project tests/tsconfig.json --noEmit",
-    "lint": "tsc --build && pnpm --filter @quickswap/desktop lint && tsc --project tests/tsconfig.json --noEmit"
+    "lint": "oxlint"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
+    "oxlint": "^1.94.0",
     "typescript": "^7.0.2",
     "vitest": "^5.1.0"
   }

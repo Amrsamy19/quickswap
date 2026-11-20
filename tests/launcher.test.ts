@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { DatabaseConnection, LaunchHistoryRepository } from '../packages/database/src';
+import { DatabaseConnection } from '../packages/database/src';
 import {
   ApplicationService,
   AccountService,

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { CredentialVault, NativeBridge } from '@quickswap/security';
-import { SettingsRepository, DatabaseConnection } from '@quickswap/database';
+import { SettingsRepository } from '@quickswap/database';
 import { ActivityService } from '../activity/service';
 
 export interface LegacyMigrationStatus {

@@ -1,0 +1,18 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "categories": {
+    "correctness": "deny"
+  },
+  "rules": {
+    "no-unused-vars": "off",
+    "no-empty": "off"
+  },
+  "ignorePatterns": [
+    "node_modules",
+    "dist",
+    "dist-electron",
+    "dist-release",
+    "packages/*/dist",
+    "packages/security/bin"
+  ]
+}

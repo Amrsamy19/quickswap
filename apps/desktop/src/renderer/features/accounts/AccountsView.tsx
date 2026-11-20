@@ -5,7 +5,6 @@ import {
   Search,
   Star,
   Shield,
-  Plus,
   Trash2,
   Edit2,
   CheckCircle,

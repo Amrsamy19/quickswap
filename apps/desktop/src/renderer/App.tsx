@@ -20,7 +20,6 @@ import { AccountsView } from './features/accounts/AccountsView';
 import { SecurityCenterView } from './features/security/SecurityCenterView';
 import { ActivityView } from './features/activity/ActivityView';
 import { SettingsView } from './features/settings/SettingsView';
-import { AccountModal } from './features/accounts/AccountModal';
 import { AccountWizardModal } from './features/accounts/AccountWizardModal';
 import { TitleBar } from './components/TitleBar';
 import { CommandPalette } from './components/CommandPalette';

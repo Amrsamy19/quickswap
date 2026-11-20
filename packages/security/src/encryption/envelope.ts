@@ -79,7 +79,7 @@ export function aesGcmDecrypt(envelope: EncryptedEnvelope, key: Buffer): Buffer 
     decipher.setAuthTag(tag);
 
     return Buffer.concat([decipher.update(ciphertext), decipher.final()]);
-  } catch (err: any) {
+  } catch {
     throw new AppError(
       'SECURITY_VAULT_ERROR',
       'Decryption failed. The master key may be incorrect or ciphertext has been tampered with.'

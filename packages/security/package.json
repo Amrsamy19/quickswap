@@ -6,7 +6,9 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "build:helper": "powershell -ExecutionPolicy Bypass -File ./scripts/compile-helper.ps1",
-    "build": "pnpm build:helper && tsc --build"
+    "build": "pnpm build:helper && tsc --build",
+    "typecheck": "tsc --build",
+    "lint": "oxlint"
   },
   "dependencies": {
     "@quickswap/shared": "workspace:*"

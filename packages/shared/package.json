@@ -5,7 +5,9 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc --build"
+    "build": "tsc --build",
+    "typecheck": "tsc --build",
+    "lint": "oxlint"
   },
   "dependencies": {
     "zod": "^4.6.7"

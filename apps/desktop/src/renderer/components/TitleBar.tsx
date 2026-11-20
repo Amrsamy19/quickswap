@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Eye, EyeOff, Search, Minus, Square, X, Lock, Unlock, ShieldCheck } from 'lucide-react';
+import { Eye, EyeOff, Search, Minus, Square, X, Lock, ShieldCheck } from 'lucide-react';
 import { VaultLockStatus } from '@quickswap/shared';
 import { QuickswapLogo } from './QuickswapLogo';
 

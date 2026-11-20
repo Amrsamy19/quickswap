@@ -3,8 +3,6 @@ import { Application, Account } from '@quickswap/shared';
 import {
   Search,
   Play,
-  Gamepad2,
-  Users,
   ShieldCheck,
   History,
   Settings,
