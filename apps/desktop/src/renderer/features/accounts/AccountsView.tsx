@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Application, Account } from '@quickswap/shared';
+import { Application, Account, LaunchResult } from '@quickswap/shared';
 import {
   Users,
   Search,
@@ -34,13 +34,7 @@ interface AccountsViewProps {
   onDeleteAccount: (id: string) => Promise<void>;
   onSetDefault: (id: string) => Promise<void>;
   onToggleFavorite: (id: string) => Promise<void>;
-  onLaunchAccount: (id: string, force?: boolean) => Promise<{
-    success: boolean;
-    alreadyRunning?: boolean;
-    message?: string;
-    sessionRestored?: boolean;
-    copiedPassword?: boolean;
-  }>;
+  onLaunchAccount: (id: string, force?: boolean) => Promise<LaunchResult>;
   onRefreshData?: () => Promise<void>;
 }
 

@@ -116,6 +116,21 @@ export const quickswapAPI: QuickswapAPI = {
     getSummary: (): Promise<DashboardSummary> => ipcRenderer.invoke(IPC_CHANNELS.DASHBOARD_GET_SUMMARY),
   },
 
+  backup: {
+    export: (passphrase: string, outputPath: string) =>
+      ipcRenderer.invoke(IPC_CHANNELS.BACKUP_EXPORT, passphrase, outputPath),
+    inspect: (passphrase: string, filePath: string) =>
+      ipcRenderer.invoke(IPC_CHANNELS.BACKUP_INSPECT, passphrase, filePath),
+    restore: (passphrase: string, filePath: string, conflictStrategy?: 'overwrite' | 'skip' | 'keep_both') =>
+      ipcRenderer.invoke(IPC_CHANNELS.BACKUP_RESTORE, passphrase, filePath, conflictStrategy),
+  },
+
+  migration: {
+    getStatus: () => ipcRenderer.invoke(IPC_CHANNELS.LEGACY_MIGRATION_GET_STATUS),
+    run: () => ipcRenderer.invoke(IPC_CHANNELS.LEGACY_MIGRATION_RUN),
+    cleanup: () => ipcRenderer.invoke(IPC_CHANNELS.LEGACY_MIGRATION_CLEANUP),
+  },
+
   window: {
     minimize: (): Promise<void> => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_MINIMIZE),
     maximize: (): Promise<boolean> => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_MAXIMIZE),

@@ -12,7 +12,9 @@
     "build:renderer": "vite build",
     "build": "pnpm build:electron && pnpm build:renderer",
     "package:win": "pnpm build && electron-builder --config electron-builder.json --win",
-    "start": "node ./scripts/start.js"
+    "start": "node ./scripts/start.js",
+    "lint": "tsc --noEmit && tsc --project tsconfig.electron.json --noEmit",
+    "typecheck": "tsc --noEmit && tsc --project tsconfig.electron.json --noEmit"
   },
   "dependencies": {
     "@quickswap/core": "workspace:*",
@@ -22,6 +24,7 @@
     "lucide-react": "^1.74.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "electron-updater": "^6.3.9",
     "zod": "^4.6.7"
   },
   "devDependencies": {

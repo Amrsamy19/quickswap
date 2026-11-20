@@ -51,6 +51,9 @@ export const SecurityCenterView: React.FC<SecurityCenterViewProps> = ({
   const handleVerifyAuditLog = async () => {
     try {
       setVerifyingLog(true);
+      if (!window.quickswapAPI) {
+        throw new Error('API not available');
+      }
       const res = await window.quickswapAPI.security.verifyAuditLog();
       setLogAuditResult(res);
     } catch (err: any) {

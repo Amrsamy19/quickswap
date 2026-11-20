@@ -56,7 +56,7 @@ export function registerAccountIpcHandlers(): void {
         message: 'No password is saved in Windows Credential Manager for this account.',
       };
     }
-    copySecretWithAutoWipe(cred.password, 30000);
+    await copySecretWithAutoWipe(cred.password, 30000);
     return {
       success: true,
       durationSeconds: 30,

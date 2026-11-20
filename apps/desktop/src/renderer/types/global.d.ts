@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import { QuickswapAPI } from '@quickswap/shared';
 
 declare global {
@@ -6,5 +7,7 @@ declare global {
     accountHubAPI?: QuickswapAPI;
   }
 }
+
+declare module '*.css';
 
 export {};

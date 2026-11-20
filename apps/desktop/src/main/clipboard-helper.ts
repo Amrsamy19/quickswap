@@ -12,31 +12,40 @@ let lastSecret: string | null = null;
  * Schedules an automatic wipe after durationMs (default: 30 seconds),
  * clearing ONLY if the clipboard still holds our secret.
  */
-export function copySecretWithAutoWipe(text: string, durationMs: number = 30000): void {
+export async function copySecretWithAutoWipe(text: string, durationMs: number = 30000): Promise<void> {
   if (wipeTimeout) {
     clearTimeout(wipeTimeout);
   }
 
   lastSecret = text;
 
-  // Write text
-  clipboard.write({
-    text,
-  });
+  // Modern Electron 45 async clipboard API
+  try {
+    if (typeof (clipboard as any).writeText === 'function') {
+      await (clipboard as any).writeText(text);
+    } else if (typeof (clipboard as any).write === 'function') {
+      (clipboard as any).write({ text });
+    }
+  } catch {
+    // Non-fatal fallback
+  }
 
   // Exclude from Windows Clipboard History and Cloud Sync (DWORD 0 = disabled)
   try {
     const zeroDword = Buffer.from([0, 0, 0, 0]);
-    clipboard.writeBuffer('CanIncludeInClipboardHistory', zeroDword);
-    clipboard.writeBuffer('CanUploadToCloudClipboard', zeroDword);
-    clipboard.writeBuffer('Clipboard Viewer Ignore', zeroDword);
+    if (typeof (clipboard as any).writeBuffer === 'function') {
+      (clipboard as any).writeBuffer('CanIncludeInClipboardHistory', zeroDword);
+      (clipboard as any).writeBuffer('CanUploadToCloudClipboard', zeroDword);
+      (clipboard as any).writeBuffer('Clipboard Viewer Ignore', zeroDword);
+    }
   } catch {
     // Non-Windows or unsupported buffer write
   }
 
-  wipeTimeout = setTimeout(() => {
+  wipeTimeout = setTimeout(async () => {
     try {
-      if (clipboard.readText() === lastSecret) {
+      const current = await (clipboard as any).readText();
+      if (current === lastSecret) {
         clipboard.clear();
       }
     } catch {

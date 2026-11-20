@@ -2,10 +2,11 @@ import { app, BrowserWindow, Menu, Tray, nativeImage, powerMonitor, session } fr
 import path from 'path';
 import fs from 'fs';
 import { DatabaseConnection } from '@quickswap/database';
-import { ApplicationService, RiotSessionManager, AppSettingsService } from '@quickswap/core';
+import { ApplicationService, RiotSessionManager, AppSettingsService, LegacyMigrationService } from '@quickswap/core';
 import { VaultGate } from '@quickswap/security';
 import { DEFAULT_DATABASE_NAME, LEGACY_DATABASE_NAME, IPC_CHANNELS } from '@quickswap/shared';
 import { registerAllIpcHandlers } from './ipc';
+import { initializeAutoUpdater } from './auto-updater';
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
@@ -163,8 +164,7 @@ function createWindow(): void {
   });
 
   // Intercept window minimize to hide to tray (notification area)
-  mainWindow.on('minimize', (event) => {
-    event.preventDefault();
+  mainWindow.on('minimize', () => {
     try {
       const settings = AppSettingsService.get();
       if (settings.lockOnMinimize) {
@@ -203,6 +203,13 @@ app.whenReady().then(async () => {
   }
 
   DatabaseConnection.initialize(dbPath);
+
+  // Safely migrate legacy AccountHub DB and credentials if detected
+  try {
+    await LegacyMigrationService.migrate(dbPath);
+  } catch (err) {
+    console.warn('[Quickswap] Legacy migration note:', err);
+  }
 
   // 2. Register Secure IPC Handlers
   registerAllIpcHandlers();
@@ -244,6 +251,13 @@ app.whenReady().then(async () => {
   // 6. Initialize System Tray & Main Window
   createTray();
   createWindow();
+
+  // 7. Initialize Auto-Updater for signed releases
+  try {
+    initializeAutoUpdater(mainWindow);
+  } catch (err) {
+    console.warn('[Quickswap] AutoUpdater initialization note:', err);
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
