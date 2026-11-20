@@ -1,16 +1,20 @@
-import { ipcMain } from 'electron';
 import { LauncherService, AccountService } from '@quickswap/core';
 import { IPC_CHANNELS } from '@quickswap/shared';
 import { copySecretWithAutoWipe } from '../clipboard-helper';
+import { secureHandle } from './ipc-security';
+import { z } from 'zod';
 
 export function registerLauncherIpcHandlers(): void {
-  ipcMain.handle(IPC_CHANNELS.LAUNCHER_LAUNCH, async (_event, accountId: string, force?: boolean) => {
-    const result = await LauncherService.launch(accountId, force);
+  secureHandle(IPC_CHANNELS.LAUNCHER_LAUNCH, async (_event, accountId: unknown, force?: unknown) => {
+    const validAccountId = z.string().min(1).parse(accountId);
+    const validForce = force !== undefined ? z.boolean().parse(force) : false;
+
+    const result = await LauncherService.launch(validAccountId, validForce);
 
     // If Riot/App requested password copy for manual login assist
     if (result.copiedPassword) {
       try {
-        const cred = await AccountService.getPassword(accountId);
+        const cred = await AccountService.getPassword(validAccountId);
         if (cred?.password) {
           copySecretWithAutoWipe(cred.password, 30000);
         }
@@ -22,27 +26,33 @@ export function registerLauncherIpcHandlers(): void {
     return result;
   });
 
-  ipcMain.handle(IPC_CHANNELS.LAUNCHER_GET_STATUS, async (_event, applicationId: string) => {
-    return LauncherService.getStatus(applicationId);
+  secureHandle(IPC_CHANNELS.LAUNCHER_GET_STATUS, async (_event, applicationId: unknown) => {
+    const validAppId = z.string().min(1).parse(applicationId);
+    return LauncherService.getStatus(validAppId);
   });
 
-  ipcMain.handle(IPC_CHANNELS.LAUNCHER_GET_HISTORY, async (_event, limit?: number) => {
-    return LauncherService.getHistory(limit);
+  secureHandle(IPC_CHANNELS.LAUNCHER_GET_HISTORY, async (_event, limit?: unknown) => {
+    const validLimit = limit !== undefined ? z.number().int().min(1).max(500).parse(limit) : 50;
+    return LauncherService.getHistory(validLimit);
   });
 
-  ipcMain.handle(IPC_CHANNELS.LAUNCHER_CAPTURE_SESSION, async (_event, accountId: string) => {
-    return LauncherService.captureSession(accountId);
+  secureHandle(IPC_CHANNELS.LAUNCHER_CAPTURE_SESSION, async (_event, accountId: unknown) => {
+    const validAccountId = z.string().min(1).parse(accountId);
+    return LauncherService.captureSession(validAccountId);
   });
 
-  ipcMain.handle(IPC_CHANNELS.LAUNCHER_HAS_SESSION, async (_event, accountId: string) => {
-    return LauncherService.hasSession(accountId);
+  secureHandle(IPC_CHANNELS.LAUNCHER_HAS_SESSION, async (_event, accountId: unknown) => {
+    const validAccountId = z.string().min(1).parse(accountId);
+    return LauncherService.hasSession(validAccountId);
   });
 
-  ipcMain.handle(IPC_CHANNELS.LAUNCHER_CLEAR_SESSION, async (_event, accountId: string) => {
-    return LauncherService.clearSession(accountId);
+  secureHandle(IPC_CHANNELS.LAUNCHER_CLEAR_SESSION, async (_event, accountId: unknown) => {
+    const validAccountId = z.string().min(1).parse(accountId);
+    return LauncherService.clearSession(validAccountId);
   });
 
-  ipcMain.handle(IPC_CHANNELS.LAUNCHER_AUTO_LOGIN, async (_event, accountId: string) => {
-    return LauncherService.autoLogin(accountId);
+  secureHandle(IPC_CHANNELS.LAUNCHER_AUTO_LOGIN, async (_event, accountId: unknown) => {
+    const validAccountId = z.string().min(1).parse(accountId);
+    return LauncherService.autoLogin(validAccountId);
   });
 }

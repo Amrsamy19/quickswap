@@ -26,9 +26,15 @@ export const SecurityCenterView: React.FC<SecurityCenterViewProps> = ({
   onVerifyIntegrity,
 }) => {
   const [verifying, setVerifying] = useState(false);
+  const [verifyingLog, setVerifyingLog] = useState(false);
   const [integrityResult, setIntegrityResult] = useState<{
     valid: boolean;
     issues: string[];
+  } | null>(null);
+  const [logAuditResult, setLogAuditResult] = useState<{
+    valid: boolean;
+    totalChecked: number;
+    message: string;
   } | null>(null);
 
   const handleRunAudit = async () => {
@@ -39,6 +45,22 @@ export const SecurityCenterView: React.FC<SecurityCenterViewProps> = ({
       await onRefresh();
     } finally {
       setVerifying(false);
+    }
+  };
+
+  const handleVerifyAuditLog = async () => {
+    try {
+      setVerifyingLog(true);
+      const res = await window.quickswapAPI.security.verifyAuditLog();
+      setLogAuditResult(res);
+    } catch (err: any) {
+      setLogAuditResult({
+        valid: false,
+        totalChecked: 0,
+        message: err.message || 'Verification failed',
+      });
+    } finally {
+      setVerifyingLog(false);
     }
   };
 
@@ -62,14 +84,25 @@ export const SecurityCenterView: React.FC<SecurityCenterViewProps> = ({
             </p>
           </div>
 
-          <button
-            onClick={handleRunAudit}
-            disabled={verifying}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white shadow-lg shadow-blue-500/20 transition-all cursor-pointer disabled:opacity-50"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${verifying ? 'animate-spin' : ''}`} />
-            <span>{verifying ? 'Auditing Vault...' : 'Run Vault Integrity Audit'}</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleVerifyAuditLog}
+              disabled={verifyingLog}
+              className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition-all cursor-pointer disabled:opacity-50"
+            >
+              <Shield className={`w-3.5 h-3.5 ${verifyingLog ? 'animate-spin' : 'text-emerald-400'}`} />
+              <span>{verifyingLog ? 'Verifying Chain...' : 'Verify Audit Log'}</span>
+            </button>
+
+            <button
+              onClick={handleRunAudit}
+              disabled={verifying}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white shadow-lg shadow-blue-500/20 transition-all cursor-pointer disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${verifying ? 'animate-spin' : ''}`} />
+              <span>{verifying ? 'Auditing Vault...' : 'Run Vault Integrity Audit'}</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -98,6 +131,31 @@ export const SecurityCenterView: React.FC<SecurityCenterViewProps> = ({
                 ? 'All SQLite secret references match physical entries in Windows Credential Manager.'
                 : integrityResult.issues.join(', ')}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cryptographic Hash Chain Audit Result */}
+      {logAuditResult && (
+        <div
+          className={`p-4 rounded-xl border flex items-start gap-3 animate-in fade-in duration-200 ${
+            logAuditResult.valid
+              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+              : 'bg-rose-500/10 border-rose-500/30 text-rose-400'
+          }`}
+        >
+          {logAuditResult.valid ? (
+            <ShieldCheck className="w-5 h-5 flex-shrink-0 mt-0.5" />
+          ) : (
+            <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+          )}
+          <div>
+            <div className="font-bold text-sm">
+              {logAuditResult.valid
+                ? `Audit Log Hash Chain Intact (${logAuditResult.totalChecked} verified)`
+                : 'Audit Log Tampering Detected'}
+            </div>
+            <div className="text-xs text-slate-300 mt-0.5">{logAuditResult.message}</div>
           </div>
         </div>
       )}

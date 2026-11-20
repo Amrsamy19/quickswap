@@ -6,11 +6,13 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 10
     groups:
+      electron-framework:
+        patterns:
+          - "electron"
+          - "electron-builder"
       dependencies:
         patterns:
           - "*"
     ignore:
       - dependency-name: "tailwindcss"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "electron"
         update-types: ["version-update:semver-major"]

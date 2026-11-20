@@ -1,39 +1,39 @@
-import { ipcMain } from 'electron';
 import { ApplicationService } from '@quickswap/core';
 import {
   IPC_CHANNELS,
-  RegisterApplicationInput,
-  UpdateApplicationInput,
+  RegisterApplicationSchema,
+  UpdateApplicationSchema,
 } from '@quickswap/shared';
+import { secureHandle } from './ipc-security';
+import { z } from 'zod';
 
 export function registerApplicationIpcHandlers(): void {
-  ipcMain.handle(IPC_CHANNELS.APPLICATIONS_LIST, async () => {
+  secureHandle(IPC_CHANNELS.APPLICATIONS_LIST, async () => {
     return ApplicationService.list();
   });
 
-  ipcMain.handle(IPC_CHANNELS.APPLICATIONS_DETECT, async () => {
+  secureHandle(IPC_CHANNELS.APPLICATIONS_DETECT, async () => {
     return ApplicationService.detectInstalled();
   });
 
-  ipcMain.handle(
-    IPC_CHANNELS.APPLICATIONS_REGISTER,
-    async (_event, input: RegisterApplicationInput) => {
-      return ApplicationService.register(input);
-    }
-  );
-
-  ipcMain.handle(
-    IPC_CHANNELS.APPLICATIONS_UPDATE,
-    async (_event, id: string, input: UpdateApplicationInput) => {
-      return ApplicationService.update(id, input);
-    }
-  );
-
-  ipcMain.handle(IPC_CHANNELS.APPLICATIONS_REMOVE, async (_event, id: string) => {
-    return ApplicationService.remove(id);
+  secureHandle(IPC_CHANNELS.APPLICATIONS_REGISTER, async (_event, input: unknown) => {
+    const validated = RegisterApplicationSchema.parse(input);
+    return ApplicationService.register(validated);
   });
 
-  ipcMain.handle(IPC_CHANNELS.APPLICATIONS_GET_BY_ID, async (_event, id: string) => {
-    return ApplicationService.getById(id);
+  secureHandle(IPC_CHANNELS.APPLICATIONS_UPDATE, async (_event, id: unknown, input: unknown) => {
+    const validId = z.string().min(1).parse(id);
+    const validated = UpdateApplicationSchema.parse(input);
+    return ApplicationService.update(validId, validated);
+  });
+
+  secureHandle(IPC_CHANNELS.APPLICATIONS_REMOVE, async (_event, id: unknown) => {
+    const validId = z.string().min(1).parse(id);
+    return ApplicationService.remove(validId);
+  });
+
+  secureHandle(IPC_CHANNELS.APPLICATIONS_GET_BY_ID, async (_event, id: unknown) => {
+    const validId = z.string().min(1).parse(id);
+    return ApplicationService.getById(validId);
   });
 }

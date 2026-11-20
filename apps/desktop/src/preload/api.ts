@@ -69,6 +69,18 @@ export const quickswapAPI: QuickswapAPI = {
       ipcRenderer.invoke(IPC_CHANNELS.SECURITY_LOCK_VAULT),
     removeMasterPassword: (password: string): Promise<{ success: boolean }> =>
       ipcRenderer.invoke(IPC_CHANNELS.SECURITY_REMOVE_MASTER_PASSWORD, password),
+    changeMasterPassword: (currentPassword: string, newPassword: string): Promise<{ success: boolean }> =>
+      ipcRenderer.invoke(IPC_CHANNELS.SECURITY_CHANGE_MASTER_PASSWORD, currentPassword, newPassword),
+    resetVault: (confirmation: string): Promise<{ success: boolean }> =>
+      ipcRenderer.invoke(IPC_CHANNELS.SECURITY_RESET_VAULT, confirmation),
+    verifyAuditLog: () => ipcRenderer.invoke(IPC_CHANNELS.SECURITY_VERIFY_AUDIT_LOG),
+    onLockStatusChange: (callback: (status: VaultLockStatus) => void): (() => void) => {
+      const handler = (_event: any, status: VaultLockStatus) => callback(status);
+      ipcRenderer.on(IPC_CHANNELS.VAULT_LOCK_STATUS_CHANGED, handler);
+      return () => {
+        ipcRenderer.removeListener(IPC_CHANNELS.VAULT_LOCK_STATUS_CHANGED, handler);
+      };
+    },
   },
 
   launcher: {

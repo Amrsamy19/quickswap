@@ -1,9 +1,10 @@
-import { app, BrowserWindow, Menu, Tray, nativeImage } from 'electron';
+import { app, BrowserWindow, Menu, Tray, nativeImage, powerMonitor, session } from 'electron';
 import path from 'path';
 import fs from 'fs';
 import { DatabaseConnection } from '@quickswap/database';
-import { ApplicationService } from '@quickswap/core';
-import { DEFAULT_DATABASE_NAME, LEGACY_DATABASE_NAME } from '@quickswap/shared';
+import { ApplicationService, RiotSessionManager, AppSettingsService } from '@quickswap/core';
+import { VaultGate } from '@quickswap/security';
+import { DEFAULT_DATABASE_NAME, LEGACY_DATABASE_NAME, IPC_CHANNELS } from '@quickswap/shared';
 import { registerAllIpcHandlers } from './ipc';
 
 let mainWindow: BrowserWindow | null = null;
@@ -116,13 +117,30 @@ function createWindow(): void {
       preload: path.join(__dirname, '../preload/index.js'),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: false,
+      sandbox: true,
     },
+  });
+
+  // Strict Content Security Policy injected into session headers
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [
+          "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' http://localhost:* ws://localhost:*;"
+        ],
+      },
+    });
   });
 
   // Security Hardening: Block unauthorized external window open and restrict navigation
   mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   mainWindow.webContents.on('will-navigate', (event, url) => {
+    if (!url.startsWith('http://localhost') && !url.startsWith('file://')) {
+      event.preventDefault();
+    }
+  });
+  mainWindow.webContents.on('will-redirect', (event, url) => {
     if (!url.startsWith('http://localhost') && !url.startsWith('file://')) {
       event.preventDefault();
     }
@@ -147,6 +165,12 @@ function createWindow(): void {
   // Intercept window minimize to hide to tray (notification area)
   mainWindow.on('minimize', (event) => {
     event.preventDefault();
+    try {
+      const settings = AppSettingsService.get();
+      if (settings.lockOnMinimize) {
+        VaultGate.lock();
+      }
+    } catch {}
     mainWindow?.hide();
   });
 
@@ -183,7 +207,31 @@ app.whenReady().then(async () => {
   // 2. Register Secure IPC Handlers
   registerAllIpcHandlers();
 
-  // 3. Auto-detect installed applications if library is empty
+  // 3. Vault Auto-Lock & Session Watchers
+  VaultGate.onLockStateChange((status) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send(IPC_CHANNELS.VAULT_LOCK_STATUS_CHANGED, status);
+    }
+  });
+
+  const settings = AppSettingsService.get();
+  VaultGate.setAutoLockMinutes(settings.autoLockMinutes || 0);
+  VaultGate.startAutoLockTimer(10000);
+
+  // Lock vault when Windows locks or system goes to sleep
+  powerMonitor.on('lock-screen', () => {
+    VaultGate.lock();
+  });
+  powerMonitor.on('suspend', () => {
+    VaultGate.lock();
+  });
+
+  // 4. Recover Riot session from previous crash or forced shutdown if needed
+  try {
+    await RiotSessionManager.recoverFromCrash();
+  } catch {}
+
+  // 5. Auto-detect installed applications if library is empty
   try {
     const existingApps = ApplicationService.list();
     if (existingApps.length === 0) {
@@ -193,7 +241,7 @@ app.whenReady().then(async () => {
     // Ignore initial detection error
   }
 
-  // 4. Initialize System Tray & Main Window
+  // 6. Initialize System Tray & Main Window
   createTray();
   createWindow();
 
