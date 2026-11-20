@@ -102,7 +102,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
     };
   }, [activeMenuId]);
 
-  const api = typeof window !== 'undefined' ? window.accountHubAPI : null;
+  const api = typeof window !== 'undefined' ? (window.quickswapAPI || window.accountHubAPI) : null;
 
   const handleLaunch = async (accId: string, force: boolean = false) => {
     try {

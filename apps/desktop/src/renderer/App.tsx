@@ -316,6 +316,7 @@ export const App: React.FC = () => {
             onAddAccount={applications.length > 0 ? () => setIsAddAccountModalOpen(true) : undefined}
             onScanApps={handleScanInstalled}
             scanning={scanning}
+            onNavigateTab={(tab) => setCurrentTab(tab)}
           />
 
           <main className="flex-1 overflow-y-auto p-8">

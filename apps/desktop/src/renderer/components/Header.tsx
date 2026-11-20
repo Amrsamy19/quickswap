@@ -12,6 +12,7 @@ interface HeaderProps {
   onAddAccount?: () => void;
   onScanApps?: () => void;
   scanning?: boolean;
+  onNavigateTab?: (tab: 'applications' | 'accounts' | 'security') => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -21,6 +22,7 @@ export const Header: React.FC<HeaderProps> = ({
   onAddAccount,
   onScanApps,
   scanning,
+  onNavigateTab,
 }) => {
   return (
     <header className="h-12 px-6 border-b border-slate-800/80 bg-[#0B0F17]/60 backdrop-blur flex items-center justify-between flex-shrink-0 z-10">
@@ -28,12 +30,30 @@ export const Header: React.FC<HeaderProps> = ({
       <div key={title} className="flex items-center gap-3 min-w-0 animate-header-fade">
         <h1 className="text-sm font-bold text-white tracking-tight truncate">{title}</h1>
         {stats && (
-          <div className="hidden sm:flex items-center gap-2 text-[11px] text-slate-400 border-l border-slate-800 pl-3">
-            <span>{stats.appsCount} Apps</span>
+          <div className="hidden sm:flex items-center gap-1.5 text-[11px] text-slate-400 border-l border-slate-800 pl-3">
+            <button
+              onClick={() => onNavigateTab?.('applications')}
+              className="hover:text-blue-400 hover:underline cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 rounded px-1 -mx-0.5"
+              title="View Application Library"
+            >
+              {stats.appsCount} Apps
+            </button>
             <span>•</span>
-            <span>{stats.accountsCount} Accounts</span>
+            <button
+              onClick={() => onNavigateTab?.('accounts')}
+              className="hover:text-blue-400 hover:underline cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 rounded px-1 -mx-0.5"
+              title="View Account Vault"
+            >
+              {stats.accountsCount} Accounts
+            </button>
             <span>•</span>
-            <span>{stats.secretsCount} Secrets</span>
+            <button
+              onClick={() => onNavigateTab?.('security')}
+              className="hover:text-emerald-400 hover:underline cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 rounded px-1 -mx-0.5"
+              title="View Security Center"
+            >
+              {stats.secretsCount} Secrets
+            </button>
           </div>
         )}
         {!stats && subtitle && (

@@ -8,9 +8,13 @@ async function runDev() {
   process.chdir(desktopRoot);
 
   console.log('[Quickswap] Compiling Electron main and preload processes...');
-  // 1. Build main and preload bundle
+  // 1. Build main and preload bundle separately so preload is self-contained without sandbox require errors
   await build({
-    configFile: path.resolve(desktopRoot, 'vite.config.electron.ts'),
+    configFile: path.resolve(desktopRoot, 'vite.config.main.ts'),
+    mode: 'development',
+  });
+  await build({
+    configFile: path.resolve(desktopRoot, 'vite.config.preload.ts'),
     mode: 'development',
   });
 

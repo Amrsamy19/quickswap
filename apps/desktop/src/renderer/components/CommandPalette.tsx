@@ -10,6 +10,9 @@ import {
   RefreshCw,
   Eye,
   Command,
+  Sparkles,
+  Lock,
+  HardDrive,
 } from 'lucide-react';
 import { AppIcon } from './AppIcon';
 
@@ -141,6 +144,40 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       icon: History,
       onSelect: () => {
         onNavigateTab('activity');
+        onClose();
+      },
+    },
+    {
+      id: 'act-updater',
+      type: 'action',
+      title: 'Check for Software Updates',
+      subtitle: 'Verify if a new signed Quickswap version is available on GitHub',
+      icon: Sparkles,
+      onSelect: () => {
+        onNavigateTab('settings');
+        onClose();
+      },
+    },
+    {
+      id: 'act-lock',
+      type: 'action',
+      title: 'Lock Cryptographic Vault',
+      subtitle: 'Immediately zero out DEK from memory and require master password',
+      icon: Lock,
+      onSelect: () => {
+        const api = typeof window !== 'undefined' ? (window.quickswapAPI || window.accountHubAPI) : null;
+        api?.security?.lockVault().catch(() => {});
+        onClose();
+      },
+    },
+    {
+      id: 'act-backup',
+      type: 'action',
+      title: 'Backup & Restore Vault',
+      subtitle: 'Export encrypted AES-256 backup or restore accounts',
+      icon: HardDrive,
+      onSelect: () => {
+        onNavigateTab('settings');
         onClose();
       },
     },
