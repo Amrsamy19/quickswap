@@ -9,9 +9,11 @@
     "start": "pnpm --filter @quickswap/desktop start",
     "build": "pnpm -r --filter \"./packages/*\" build && pnpm --filter @quickswap/desktop build",
     "package:win": "pnpm --filter @quickswap/desktop package:win",
+    "package:release": "pnpm build && pnpm package:win && node scripts/generate-checksums.js",
     "compile:sec": "powershell -ExecutionPolicy Bypass -File ./packages/security/scripts/compile-helper.ps1",
     "test": "vitest run",
-    "typecheck": "tsc --build"
+    "typecheck": "tsc --build && pnpm --filter @quickswap/desktop typecheck && tsc --project tests/tsconfig.json --noEmit",
+    "lint": "tsc --build && pnpm --filter @quickswap/desktop lint && tsc --project tests/tsconfig.json --noEmit"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
