@@ -1,6 +1,12 @@
 import { NativeBridge, CredentialVault, VaultGate } from '@quickswap/security';
-import { AccountSecretsRepository, AccountsRepository, SettingsRepository } from '@quickswap/database';
+import {
+  AccountSecretsRepository,
+  AccountsRepository,
+  SettingsRepository,
+  ActivityLogRepository,
+} from '@quickswap/database';
 import { SecurityStatus, StoredCredentialMetadata, VaultLockStatus } from '@quickswap/shared';
+import { ActivityService } from '../activity/service';
 
 // Initialize VaultGate with SettingsRepository storage
 VaultGate.setStorageProvider({
@@ -112,6 +118,42 @@ export class CoreSecurityService {
   public static async removeMasterPassword(currentPassword: string): Promise<{ success: boolean }> {
     const success = await VaultGate.removeMasterPassword(currentPassword);
     return { success };
+  }
+
+  public static async changeMasterPassword(
+    currentPassword: string,
+    newPassword: string
+  ): Promise<{ success: boolean }> {
+    return VaultGate.changeMasterPassword(currentPassword, newPassword);
+  }
+
+  public static async resetVault(confirmation: string): Promise<{ success: boolean }> {
+    // 1. Purge native credentials
+    try {
+      const creds = await CredentialVault.listQuickswapCredentials();
+      for (const c of creds) {
+        const parts = c.target.split('/');
+        if (parts[1]) {
+          await CredentialVault.deleteAllForAccount(parts[1]);
+        }
+      }
+    } catch {}
+
+    // 2. Clear database accounts, secrets & activity logs
+    try {
+      const accounts = AccountsRepository.list();
+      for (const a of accounts) {
+        AccountsRepository.delete(a.id);
+      }
+      ActivityLogRepository.clear();
+    } catch {}
+
+    // 3. Reset VaultGate master key envelope
+    return VaultGate.resetVault(confirmation);
+  }
+
+  public static async verifyAuditLog() {
+    return ActivityService.verifyLog();
   }
 
   public static async assertUnlocked(): Promise<void> {

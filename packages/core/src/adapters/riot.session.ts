@@ -1,10 +1,11 @@
-﻿import fs from 'fs';
+import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { DpapiVault } from '@quickswap/security';
 import {
   AccountSecretsRepository,
   AccountsRepository,
+  SettingsRepository,
 } from '@quickswap/database';
 import { AppError } from '@quickswap/shared';
 import { ActivityService } from '../activity/service';
@@ -182,18 +183,42 @@ export class RiotSessionManager {
     }
 
     const targetPath = this.getPrivateSettingsPath();
+    const backupEncPath = `${targetPath}.bak.enc`;
+    const legacyBak = `${targetPath}.bak`;
 
-    // Create a backup of the current file if it exists
+    // 1. Encrypt backup at rest instead of plaintext .bak
     if (fs.existsSync(targetPath)) {
       try {
-        fs.copyFileSync(targetPath, `${targetPath}.bak`);
-      } catch {
-        // Continue even if backup fails
+        const existingContent = fs.readFileSync(targetPath, 'utf8');
+        const encryptedBackup = await DpapiVault.protect(existingContent);
+        fs.writeFileSync(backupEncPath, encryptedBackup, 'utf8');
+      } catch (err: any) {
+        console.warn(`[RiotSessionManager] Encrypted backup warning: ${err.message}`);
       }
     }
 
-    // Write the decrypted session YAML
+    // Scrub any legacy plaintext .bak file
+    if (fs.existsSync(legacyBak)) {
+      try {
+        fs.unlinkSync(legacyBak);
+      } catch {}
+    }
+
+    // 2. Write the decrypted session YAML
     fs.writeFileSync(targetPath, payload.yaml, 'utf8');
+
+    // 3. Persist crash recovery marker
+    try {
+      SettingsRepository.setRaw(
+        'riot_active_launch_state',
+        JSON.stringify({
+          accountId,
+          targetPath,
+          backupEncPath,
+          launchedAt: new Date().toISOString(),
+        })
+      );
+    } catch {}
 
     ActivityService.log(
       'session_restored',
@@ -219,5 +244,80 @@ export class RiotSessionManager {
       accountId,
       `Unlinked Riot session for account ${accountId}`
     );
+  }
+
+  /**
+   * Startup crash and force-kill recovery:
+   * Checks if an unfinalized session state or dangling plaintext backup remains from a prior crash.
+   * Restores original encrypted session and securely scrubs plaintext files.
+   */
+  public static async recoverFromCrash(): Promise<{ recovered: boolean; message?: string }> {
+    const targetPath = this.getPrivateSettingsPath();
+    const legacyBak = `${targetPath}.bak`;
+    const backupEncPath = `${targetPath}.bak.enc`;
+
+    // Always scrub any lingering plaintext .bak file
+    if (fs.existsSync(legacyBak)) {
+      try {
+        fs.unlinkSync(legacyBak);
+      } catch {}
+    }
+
+    const rawState = SettingsRepository.getRaw('riot_active_launch_state');
+    if (!rawState && !fs.existsSync(backupEncPath)) {
+      return { recovered: false };
+    }
+
+    try {
+      if (fs.existsSync(backupEncPath)) {
+        const encrypted = fs.readFileSync(backupEncPath, 'utf8');
+        const restoredPlain = await DpapiVault.unprotect(encrypted);
+        fs.writeFileSync(targetPath, restoredPlain, 'utf8');
+        fs.unlinkSync(backupEncPath);
+      }
+
+      SettingsRepository.removeRaw('riot_active_launch_state');
+      ActivityService.log(
+        'session_restored',
+        'security',
+        null,
+        'Recovered Riot session state after previous crash/force-kill'
+      );
+
+      return {
+        recovered: true,
+        message: 'Successfully recovered Riot session state from prior ungraceful shutdown.',
+      };
+    } catch (err: any) {
+      SettingsRepository.removeRaw('riot_active_launch_state');
+      return {
+        recovered: false,
+        message: `Crash recovery finished with note: ${err.message}`,
+      };
+    }
+  }
+
+  /**
+   * Cleans up plaintext session files or restores original encrypted backup after process launch/exit.
+   */
+  public static async cleanupSessionAfterLaunch(accountId?: string): Promise<void> {
+    const targetPath = this.getPrivateSettingsPath();
+    const backupEncPath = `${targetPath}.bak.enc`;
+    const legacyBak = `${targetPath}.bak`;
+
+    if (fs.existsSync(legacyBak)) {
+      try { fs.unlinkSync(legacyBak); } catch {}
+    }
+
+    if (fs.existsSync(backupEncPath)) {
+      try {
+        const encrypted = fs.readFileSync(backupEncPath, 'utf8');
+        const restored = await DpapiVault.unprotect(encrypted);
+        fs.writeFileSync(targetPath, restored, 'utf8');
+        fs.unlinkSync(backupEncPath);
+      } catch {}
+    }
+
+    SettingsRepository.removeRaw('riot_active_launch_state');
   }
 }

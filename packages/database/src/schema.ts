@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS settings (
   value TEXT NOT NULL
 );
 
--- Activity Logs Table
+-- Activity Logs Table (Cryptographically tamper-evident hash chain)
 CREATE TABLE IF NOT EXISTS activity_logs (
   id TEXT PRIMARY KEY,
   action TEXT NOT NULL,
@@ -63,6 +63,8 @@ CREATE TABLE IF NOT EXISTS activity_logs (
   entity_id TEXT,
   title TEXT NOT NULL,
   details TEXT,
+  prev_hash TEXT NOT NULL DEFAULT 'GENESIS',
+  entry_hash TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 

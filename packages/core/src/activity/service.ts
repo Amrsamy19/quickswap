@@ -1,4 +1,4 @@
-﻿import crypto from 'crypto';
+import crypto from 'crypto';
 import { ActivityLogRepository, SettingsRepository } from '@quickswap/database';
 import { ActivityAction, ActivityEntityType, ActivityLogEntry } from '@quickswap/shared';
 import { SecuritySanitizer } from '@quickswap/security';
@@ -33,5 +33,9 @@ export class ActivityService {
 
   public static clear(): void {
     ActivityLogRepository.clear();
+  }
+
+  public static verifyLog() {
+    return ActivityLogRepository.verifyIntegrityChain();
   }
 }

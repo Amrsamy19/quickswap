@@ -1,4 +1,4 @@
-﻿import { spawn } from 'child_process';
+import { spawn } from 'child_process';
 import path from 'path';
 import fs from 'fs';
 import { ApplicationAdapter, LaunchContext } from './base.adapter';
@@ -105,6 +105,11 @@ export class RiotAdapter implements ApplicationAdapter {
       detached: true,
       stdio: 'ignore',
       cwd: path.dirname(context.executablePath),
+    });
+
+    // Clean up temporary plaintext session file when process exits
+    child.on('exit', () => {
+      RiotSessionManager.cleanupSessionAfterLaunch(context.accountId).catch(() => {});
     });
 
     child.unref();

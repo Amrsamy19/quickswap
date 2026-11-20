@@ -14,20 +14,49 @@ import {
   UpdateAccountSchema,
   AccountFilterSchema,
 } from '@quickswap/shared';
-import { CredentialVault } from '@quickswap/security';
+import { CredentialVault, VaultGate, encryptString, decryptString, isEncryptedString } from '@quickswap/security';
 import { ActivityService } from '../activity/service';
 import { CoreSecurityService } from '../security/service';
 
 export class AccountService {
+  private static decryptMetadata(account: Account): Account {
+    let username = account.username;
+    let launchArgs = account.launchArguments;
+
+    let isUnlocked = false;
+    let dek: Buffer | null = null;
+    try {
+      dek = VaultGate.getDEK();
+      isUnlocked = true;
+    } catch {
+      isUnlocked = false;
+    }
+
+    if (username && isEncryptedString(username)) {
+      username = isUnlocked && dek ? decryptString(username, dek) : '••••••••';
+    }
+    if (launchArgs && isEncryptedString(launchArgs)) {
+      launchArgs = isUnlocked && dek ? decryptString(launchArgs, dek) : null;
+    }
+
+    return {
+      ...account,
+      username,
+      launchArguments: launchArgs,
+    };
+  }
+
   public static list(filter?: AccountFilter): Account[] {
     if (filter) {
       AccountFilterSchema.parse(filter);
     }
-    return AccountsRepository.list(filter);
+    const accounts = AccountsRepository.list(filter);
+    return accounts.map(this.decryptMetadata);
   }
 
   public static getById(id: string): Account | null {
-    return AccountsRepository.getById(id);
+    const account = AccountsRepository.getById(id);
+    return account ? this.decryptMetadata(account) : null;
   }
 
   public static async create(input: CreateAccountInput): Promise<Account> {
@@ -43,18 +72,33 @@ export class AccountService {
 
     const accountId = `acc-${crypto.randomUUID()}`;
 
+    let usernameToStore = validated.username;
+    let launchArgsToStore = validated.launchArguments;
+
+    try {
+      const dek = VaultGate.getDEK();
+      if (usernameToStore) {
+        usernameToStore = encryptString(usernameToStore, dek);
+      }
+      if (launchArgsToStore) {
+        launchArgsToStore = encryptString(launchArgsToStore, dek);
+      }
+    } catch {
+      // Vault is locked or no master password set
+    }
+
     // 1. Persist account metadata (WITHOUT password)
     AccountsRepository.create({
       id: accountId,
       applicationId: validated.applicationId,
       displayName: validated.displayName,
-      username: validated.username,
+      username: usernameToStore,
       region: validated.region,
       avatar: validated.avatar,
       authMethod: validated.authMethod,
       isFavorite: validated.isFavorite,
       isDefault: validated.isDefault,
-      launchArguments: validated.launchArguments,
+      launchArguments: launchArgsToStore,
     });
 
     // 2. Securely store password in Windows Credential Manager if provided
@@ -146,7 +190,20 @@ export class AccountService {
       }
     }
 
-    AccountsRepository.update(id, validated);
+    const updatePayload = { ...validated };
+    try {
+      const dek = VaultGate.getDEK();
+      if (updatePayload.username) {
+        updatePayload.username = encryptString(updatePayload.username, dek);
+      }
+      if (updatePayload.launchArguments) {
+        updatePayload.launchArguments = encryptString(updatePayload.launchArguments, dek);
+      }
+    } catch {
+      // Vault is locked or no master password
+    }
+
+    AccountsRepository.update(id, updatePayload);
     ActivityService.log(
       'account_updated',
       'account',
@@ -154,7 +211,7 @@ export class AccountService {
       `Updated account "${validated.displayName || existing.displayName}"`
     );
 
-    return AccountsRepository.getById(id)!;
+    return this.getById(id)!;
   }
 
   public static async delete(id: string): Promise<void> {

@@ -3,11 +3,13 @@ import fs from 'fs';
 import { Migration } from './types';
 import { migration001 } from './001_initial_schema';
 import { migration002 } from './002_performance_indexes';
+import { migration003 } from './003_security_hardening';
 import { AppError } from '@quickswap/shared';
 
 export const ALL_MIGRATIONS: Migration[] = [
   migration001,
   migration002,
+  migration003,
 ];
 
 export class MigrationRunner {
