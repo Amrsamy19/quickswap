@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Modal } from '../../components/Modal';
-import { RegisterApplicationInput, ApplicationCategory } from '@accounthub/shared';
+import { RegisterApplicationInput, ApplicationCategory } from '@quickswap/shared';
 
 interface RegisterAppModalProps {
   isOpen: boolean;

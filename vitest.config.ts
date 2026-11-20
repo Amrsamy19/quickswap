@@ -8,6 +8,10 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      '@quickswap/shared': path.resolve(__dirname, 'packages/shared/src'),
+      '@quickswap/database': path.resolve(__dirname, 'packages/database/src'),
+      '@quickswap/security': path.resolve(__dirname, 'packages/security/src'),
+      '@quickswap/core': path.resolve(__dirname, 'packages/core/src'),
       '@accounthub/shared': path.resolve(__dirname, 'packages/shared/src'),
       '@accounthub/database': path.resolve(__dirname, 'packages/database/src'),
       '@accounthub/security': path.resolve(__dirname, 'packages/security/src'),

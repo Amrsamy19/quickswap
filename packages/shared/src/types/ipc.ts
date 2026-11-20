@@ -25,7 +25,7 @@ export interface SecurityStatus {
   lastSecurityCheck: string;
 }
 
-export interface AccountHubAPI {
+export interface QuickswapAPI {
   applications: {
     list(): Promise<Application[]>;
     detect(): Promise<Application[]>;
@@ -72,3 +72,5 @@ export interface AccountHubAPI {
     update(input: UpdateSettingsInput): Promise<AppSettings>;
   };
 }
+
+export type AccountHubAPI = QuickswapAPI;

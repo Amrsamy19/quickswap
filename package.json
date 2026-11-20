@@ -1,13 +1,13 @@
 {
-  "name": "accounthub-monorepo",
+  "name": "quickswap-monorepo",
   "version": "1.0.0",
   "private": true,
-  "description": "AccountHub - Universal desktop account manager for Windows",
+  "description": "Quickswap - Universal desktop account manager for Windows",
   "scripts": {
-    "dev": "pnpm --filter @accounthub/desktop dev",
-    "start": "pnpm --filter @accounthub/desktop start",
-    "build": "pnpm -r --filter \"./packages/*\" build && pnpm --filter @accounthub/desktop build",
-    "package:win": "pnpm --filter @accounthub/desktop package:win",
+    "dev": "pnpm --filter @quickswap/desktop dev",
+    "start": "pnpm --filter @quickswap/desktop start",
+    "build": "pnpm -r --filter \"./packages/*\" build && pnpm --filter @quickswap/desktop build",
+    "package:win": "pnpm --filter @quickswap/desktop package:win",
     "compile:sec": "powershell -ExecutionPolicy Bypass -File ./packages/security/scripts/compile-helper.ps1",
     "test": "vitest run",
     "typecheck": "tsc --build"

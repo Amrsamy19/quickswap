@@ -1,5 +1,5 @@
-import { DatabaseConnection } from '../connection';
-import { Application, ApplicationCategory } from '@accounthub/shared';
+﻿import { DatabaseConnection } from '../connection';
+import { Application, ApplicationCategory } from '@quickswap/shared';
 
 export interface ApplicationRow {
   id: string;

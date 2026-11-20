@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ActivityLogEntry } from '@accounthub/shared';
+import { ActivityLogEntry } from '@quickswap/shared';
 import { History, Trash2, Shield, Users, Gamepad2, Info, ChevronDown } from 'lucide-react';
 
 interface ActivityViewProps {

@@ -1,5 +1,5 @@
 {
-  "name": "@accounthub/security",
+  "name": "@quickswap/security",
   "version": "1.0.0",
   "private": true,
   "main": "./dist/index.js",
@@ -9,7 +9,7 @@
     "build": "pnpm build:helper && tsc --build"
   },
   "dependencies": {
-    "@accounthub/shared": "workspace:*"
+    "@quickswap/shared": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.7.3"

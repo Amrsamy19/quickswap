@@ -1,5 +1,5 @@
 {
-  "name": "@accounthub/core",
+  "name": "@quickswap/core",
   "version": "1.0.0",
   "private": true,
   "main": "./dist/index.js",
@@ -8,9 +8,9 @@
     "build": "tsc --build"
   },
   "dependencies": {
-    "@accounthub/database": "workspace:*",
-    "@accounthub/security": "workspace:*",
-    "@accounthub/shared": "workspace:*"
+    "@quickswap/database": "workspace:*",
+    "@quickswap/security": "workspace:*",
+    "@quickswap/shared": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.7.3"

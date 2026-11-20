@@ -1,5 +1,5 @@
 import React from 'react';
-import { AppSettings, UpdateSettingsInput } from '@accounthub/shared';
+import { AppSettings, UpdateSettingsInput } from '@quickswap/shared';
 import { Settings, Shield, HardDrive, Bell, Moon } from 'lucide-react';
 
 interface SettingsViewProps {
@@ -24,7 +24,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onUpdate }
             <div>
               <div className="text-xs font-semibold text-white">Start With Windows</div>
               <div className="text-[11px] text-slate-400">
-                Launch AccountHub in the background when your PC boots.
+                Launch Quickswap in the background when your PC boots.
               </div>
             </div>
             <input
@@ -39,7 +39,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onUpdate }
             <div>
               <div className="text-xs font-semibold text-white">Minimize to System Tray</div>
               <div className="text-[11px] text-slate-400">
-                Keep AccountHub running in the taskbar notification area when closed.
+                Keep Quickswap running in the taskbar notification area when closed.
               </div>
             </div>
             <input

@@ -1,9 +1,9 @@
-import crypto from 'crypto';
+﻿import crypto from 'crypto';
 import {
   AccountsRepository,
   AccountSecretsRepository,
   ApplicationsRepository,
-} from '@accounthub/database';
+} from '@quickswap/database';
 import {
   Account,
   CreateAccountInput,
@@ -13,8 +13,8 @@ import {
   CreateAccountSchema,
   UpdateAccountSchema,
   AccountFilterSchema,
-} from '@accounthub/shared';
-import { CredentialVault } from '@accounthub/security';
+} from '@quickswap/shared';
+import { CredentialVault } from '@quickswap/security';
 import { ActivityService } from '../activity/service';
 
 export class AccountService {

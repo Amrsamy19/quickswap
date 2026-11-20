@@ -115,7 +115,7 @@ describe('AccountHub Security Package (Windows Native Credential Manager & DPAPI
     expect(read?.password).toBe(testPassword);
 
     // 3. List credentials and verify target appears
-    const list = await CredentialVault.listAccountHubCredentials();
+    const list = await CredentialVault.listQuickswapCredentials();
     const found = list.find((item) => item.target === target);
     expect(found).toBeDefined();
 

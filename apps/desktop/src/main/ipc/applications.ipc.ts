@@ -1,10 +1,10 @@
 import { ipcMain } from 'electron';
-import { ApplicationService } from '@accounthub/core';
+import { ApplicationService } from '@quickswap/core';
 import {
   IPC_CHANNELS,
   RegisterApplicationInput,
   UpdateApplicationInput,
-} from '@accounthub/shared';
+} from '@quickswap/shared';
 
 export function registerApplicationIpcHandlers(): void {
   ipcMain.handle(IPC_CHANNELS.APPLICATIONS_LIST, async () => {

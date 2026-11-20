@@ -1,5 +1,5 @@
-import { DatabaseConnection } from '../connection';
-import { SecretReference, SecretType } from '@accounthub/shared';
+﻿import { DatabaseConnection } from '../connection';
+import { SecretReference, SecretType } from '@quickswap/shared';
 
 export interface SecretReferenceRow {
   id: string;

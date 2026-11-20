@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron';
-import { LauncherService, AccountService } from '@accounthub/core';
-import { IPC_CHANNELS } from '@accounthub/shared';
+import { LauncherService, AccountService } from '@quickswap/core';
+import { IPC_CHANNELS } from '@quickswap/shared';
 import { copySecretWithAutoWipe } from '../clipboard-helper';
 
 export function registerLauncherIpcHandlers(): void {

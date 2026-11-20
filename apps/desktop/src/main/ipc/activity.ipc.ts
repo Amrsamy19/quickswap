@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron';
-import { ActivityService, AppSettingsService } from '@accounthub/core';
-import { IPC_CHANNELS, UpdateSettingsInput } from '@accounthub/shared';
+import { ActivityService, AppSettingsService } from '@quickswap/core';
+import { IPC_CHANNELS, UpdateSettingsInput } from '@quickswap/shared';
 
 export function registerActivityIpcHandlers(): void {
   ipcMain.handle(IPC_CHANNELS.ACTIVITY_LIST, async (_event, limit?: number) => {

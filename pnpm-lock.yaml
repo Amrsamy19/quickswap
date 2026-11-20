@@ -20,16 +20,16 @@ importers:
 
   apps/desktop:
     dependencies:
-      '@accounthub/core':
+      '@quickswap/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@accounthub/database':
+      '@quickswap/database':
         specifier: workspace:*
         version: link:../../packages/database
-      '@accounthub/security':
+      '@quickswap/security':
         specifier: workspace:*
         version: link:../../packages/security
-      '@accounthub/shared':
+      '@quickswap/shared':
         specifier: workspace:*
         version: link:../../packages/shared
       lucide-react:
@@ -75,13 +75,13 @@ importers:
 
   packages/core:
     dependencies:
-      '@accounthub/database':
+      '@quickswap/database':
         specifier: workspace:*
         version: link:../database
-      '@accounthub/security':
+      '@quickswap/security':
         specifier: workspace:*
         version: link:../security
-      '@accounthub/shared':
+      '@quickswap/shared':
         specifier: workspace:*
         version: link:../shared
     devDependencies:
@@ -91,7 +91,7 @@ importers:
 
   packages/database:
     dependencies:
-      '@accounthub/shared':
+      '@quickswap/shared':
         specifier: workspace:*
         version: link:../shared
     devDependencies:
@@ -101,7 +101,7 @@ importers:
 
   packages/security:
     dependencies:
-      '@accounthub/shared':
+      '@quickswap/shared':
         specifier: workspace:*
         version: link:../shared
     devDependencies:

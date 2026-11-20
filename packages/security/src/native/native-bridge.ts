@@ -1,7 +1,7 @@
 import { spawn } from 'child_process';
 import path from 'path';
 import fs from 'fs';
-import { AppError } from '@accounthub/shared';
+import { AppError } from '@quickswap/shared';
 
 export interface NativeHelperStatus {
   windowsCredManager: boolean;
@@ -19,12 +19,21 @@ export class NativeBridge {
     // Try several search locations
     const resourcesPath = (process as any).resourcesPath;
     const candidates = [
-      ...(resourcesPath ? [path.resolve(resourcesPath, 'bin/AccountHubSecHelper.exe')] : []),
+      ...(resourcesPath ? [
+        path.resolve(resourcesPath, 'bin/QuickswapSecHelper.exe'),
+        path.resolve(resourcesPath, 'bin/AccountHubSecHelper.exe')
+      ] : []),
+      path.resolve(__dirname, '../../bin/QuickswapSecHelper.exe'),
       path.resolve(__dirname, '../../bin/AccountHubSecHelper.exe'),
+      path.resolve(__dirname, '../bin/QuickswapSecHelper.exe'),
       path.resolve(__dirname, '../bin/AccountHubSecHelper.exe'),
+      path.resolve(__dirname, '../../../packages/security/bin/QuickswapSecHelper.exe'),
       path.resolve(__dirname, '../../../packages/security/bin/AccountHubSecHelper.exe'),
+      path.resolve(__dirname, '../../../../packages/security/bin/QuickswapSecHelper.exe'),
       path.resolve(__dirname, '../../../../packages/security/bin/AccountHubSecHelper.exe'),
+      path.resolve(process.cwd(), 'packages/security/bin/QuickswapSecHelper.exe'),
       path.resolve(process.cwd(), 'packages/security/bin/AccountHubSecHelper.exe'),
+      path.resolve(process.cwd(), 'resources/bin/QuickswapSecHelper.exe'),
       path.resolve(process.cwd(), 'resources/bin/AccountHubSecHelper.exe'),
     ];
 
@@ -37,7 +46,7 @@ export class NativeBridge {
 
     throw new AppError(
       'SECURITY_VAULT_ERROR',
-      'AccountHubSecHelper.exe was not found. Please run pnpm compile:sec or build the project.'
+      'QuickswapSecHelper.exe was not found. Please run pnpm compile:sec or build the project.'
     );
   }
 

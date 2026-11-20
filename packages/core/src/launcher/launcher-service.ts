@@ -1,21 +1,21 @@
-import crypto from 'crypto';
+﻿import crypto from 'crypto';
 import fs from 'fs';
 import {
   AccountsRepository,
   ApplicationsRepository,
   LaunchHistoryRepository,
-} from '@accounthub/database';
+} from '@quickswap/database';
 import {
   LaunchResult,
   ProcessStatus,
   LaunchHistoryEntry,
   AppError,
-} from '@accounthub/shared';
+} from '@quickswap/shared';
 import { AdapterRegistry } from '../adapters/adapter-registry';
 import { ProcessMonitor } from './process-monitor';
 import { ActivityService } from '../activity/service';
 import { RiotSessionManager } from '../adapters/riot.session';
-import { AutoLoginService } from '@accounthub/security';
+import { AutoLoginService } from '@quickswap/security';
 
 export class LauncherService {
   public static async launch(accountId: string, force: boolean = false): Promise<LaunchResult> {

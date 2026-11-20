@@ -1,5 +1,5 @@
-import { DatabaseConnection } from '../connection';
-import { ActivityLogEntry, ActivityAction, ActivityEntityType } from '@accounthub/shared';
+﻿import { DatabaseConnection } from '../connection';
+import { ActivityLogEntry, ActivityAction, ActivityEntityType } from '@quickswap/shared';
 
 export interface ActivityLogRow {
   id: string;

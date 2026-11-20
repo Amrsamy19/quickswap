@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron';
-import { CoreSecurityService } from '@accounthub/core';
-import { IPC_CHANNELS } from '@accounthub/shared';
+import { CoreSecurityService } from '@quickswap/core';
+import { IPC_CHANNELS } from '@quickswap/shared';
 
 export function registerSecurityIpcHandlers(): void {
   ipcMain.handle(IPC_CHANNELS.SECURITY_GET_STATUS, async () => {

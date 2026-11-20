@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Application, ApplicationCategory } from '@accounthub/shared';
+import { Application, ApplicationCategory } from '@quickswap/shared';
 import {
   Gamepad2,
   Plus,

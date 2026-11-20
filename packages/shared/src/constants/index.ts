@@ -1,6 +1,8 @@
-export const APP_NAME = 'AccountHub';
-export const CREDENTIAL_TARGET_PREFIX = 'AccountHub';
-export const DEFAULT_DATABASE_NAME = 'accounthub.db';
+export const APP_NAME = 'Quickswap';
+export const CREDENTIAL_TARGET_PREFIX = 'Quickswap';
+export const LEGACY_CREDENTIAL_TARGET_PREFIX = 'AccountHub';
+export const DEFAULT_DATABASE_NAME = 'quickswap.db';
+export const LEGACY_DATABASE_NAME = 'accounthub.db';
 
 export const RIOT_REGIONS = [
   { id: 'NA', name: 'North America (NA)' },

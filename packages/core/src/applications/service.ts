@@ -1,6 +1,6 @@
-import crypto from 'crypto';
+﻿import crypto from 'crypto';
 import fs from 'fs';
-import { ApplicationsRepository } from '@accounthub/database';
+import { ApplicationsRepository } from '@quickswap/database';
 import {
   Application,
   RegisterApplicationInput,
@@ -8,7 +8,7 @@ import {
   AppError,
   RegisterApplicationSchema,
   UpdateApplicationSchema,
-} from '@accounthub/shared';
+} from '@quickswap/shared';
 import { ApplicationDetector } from './detector';
 import { ActivityService } from '../activity/service';
 

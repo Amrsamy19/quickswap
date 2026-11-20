@@ -1,5 +1,6 @@
 import { contextBridge } from 'electron';
-import { accountHubAPI } from './api';
+import { quickswapAPI } from './api';
 
 // Expose safe, typed API to renderer with strict context isolation
-contextBridge.exposeInMainWorld('accountHubAPI', accountHubAPI);
+contextBridge.exposeInMainWorld('quickswapAPI', quickswapAPI);
+contextBridge.exposeInMainWorld('accountHubAPI', quickswapAPI);

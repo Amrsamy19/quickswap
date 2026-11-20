@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SecurityStatus, StoredCredentialMetadata } from '@accounthub/shared';
+import { SecurityStatus, StoredCredentialMetadata } from '@quickswap/shared';
 import {
   ShieldCheck,
   Shield,
@@ -56,7 +56,7 @@ export const SecurityCenterView: React.FC<SecurityCenterViewProps> = ({
               Local Hardware-Backed Vault
             </h2>
             <p className="text-xs text-slate-300 mt-1 max-w-xl leading-relaxed">
-              AccountHub stores all passwords and session tokens inside Windows Credential Manager
+              Quickswap stores all passwords and session tokens inside Windows Credential Manager
               and protects encryption keys with Windows DPAPI (Data Protection API). Zero plaintext
               passwords ever touch the database or leave this PC.
             </p>
@@ -167,7 +167,7 @@ export const SecurityCenterView: React.FC<SecurityCenterViewProps> = ({
             </div>
             <p className="text-[11px] text-slate-400 leading-relaxed">
               SQLite only holds pointer IDs (e.g.{' '}
-              <code className="text-cyan-400 font-mono">AccountHub/acc-1/password</code>). No raw
+              <code className="text-cyan-400 font-mono">Quickswap/acc-1/password</code>). No raw
               passwords ever leak into backups.
             </p>
           </div>
@@ -188,7 +188,7 @@ export const SecurityCenterView: React.FC<SecurityCenterViewProps> = ({
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
               Physical credential slots managed under target prefix{' '}
-              <code className="text-blue-400 font-mono">AccountHub/*</code>
+              <code className="text-blue-400 font-mono">Quickswap/*</code>
             </p>
           </div>
           <button

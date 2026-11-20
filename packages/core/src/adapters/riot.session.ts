@@ -1,12 +1,12 @@
-import fs from 'fs';
+﻿import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
-import { DpapiVault } from '@accounthub/security';
+import { DpapiVault } from '@quickswap/security';
 import {
   AccountSecretsRepository,
   AccountsRepository,
-} from '@accounthub/database';
-import { AppError } from '@accounthub/shared';
+} from '@quickswap/database';
+import { AppError } from '@quickswap/shared';
 import { ActivityService } from '../activity/service';
 
 export interface RiotSessionPayload {

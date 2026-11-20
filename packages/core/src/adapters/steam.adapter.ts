@@ -1,8 +1,8 @@
-import { spawn } from 'child_process';
+﻿import { spawn } from 'child_process';
 import path from 'path';
 import fs from 'fs';
 import { ApplicationAdapter, LaunchContext } from './base.adapter';
-import { ApplicationCapabilities, LaunchResult } from '@accounthub/shared';
+import { ApplicationCapabilities, LaunchResult } from '@quickswap/shared';
 import { ProcessMonitor } from '../launcher/process-monitor';
 
 export class SteamAdapter implements ApplicationAdapter {

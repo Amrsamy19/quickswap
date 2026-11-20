@@ -1,5 +1,5 @@
 import React from 'react';
-import { Application } from '@accounthub/shared';
+import { Application } from '@quickswap/shared';
 import { Gamepad2 } from 'lucide-react';
 
 export interface AppIconProps {

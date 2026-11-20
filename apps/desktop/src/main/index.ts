@@ -1,7 +1,9 @@
 import { app, BrowserWindow, Menu } from 'electron';
 import path from 'path';
-import { DatabaseConnection } from '@accounthub/database';
-import { ApplicationService } from '@accounthub/core';
+import fs from 'fs';
+import { DatabaseConnection } from '@quickswap/database';
+import { ApplicationService } from '@quickswap/core';
+import { DEFAULT_DATABASE_NAME, LEGACY_DATABASE_NAME } from '@quickswap/shared';
 import { registerAllIpcHandlers } from './ipc';
 
 let mainWindow: BrowserWindow | null = null;
@@ -49,7 +51,19 @@ function createWindow(): void {
 
 app.whenReady().then(async () => {
   // 1. Initialize SQLite Database
-  const dbPath = path.join(app.getPath('userData'), 'accounthub.db');
+  const userDataDir = app.getPath('userData');
+  const dbPath = path.join(userDataDir, DEFAULT_DATABASE_NAME);
+  const legacyDbPath = path.join(userDataDir, LEGACY_DATABASE_NAME);
+
+  // Backward compatibility: migrate legacy accounthub.db if quickswap.db doesn't exist
+  if (!fs.existsSync(dbPath) && fs.existsSync(legacyDbPath)) {
+    try {
+      fs.copyFileSync(legacyDbPath, dbPath);
+    } catch {
+      // Ignore copy error
+    }
+  }
+
   DatabaseConnection.initialize(dbPath);
 
   // 2. Register Secure IPC Handlers

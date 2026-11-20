@@ -4,7 +4,7 @@ import {
   Account,
   SecurityStatus,
   ActivityLogEntry,
-} from '@accounthub/shared';
+} from '@quickswap/shared';
 import {
   Gamepad2,
   Users,

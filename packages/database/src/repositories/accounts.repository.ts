@@ -1,5 +1,5 @@
-import { DatabaseConnection } from '../connection';
-import { Account, AccountFilter, AuthMethod, AuthState } from '@accounthub/shared';
+﻿import { DatabaseConnection } from '../connection';
+import { Account, AccountFilter, AuthMethod, AuthState } from '@quickswap/shared';
 
 export interface AccountRow {
   id: string;

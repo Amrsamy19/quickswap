@@ -1,8 +1,8 @@
 {
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
-  "appId": "com.accounthub.desktop",
-  "productName": "AccountHub",
-  "copyright": "Copyright © 2026 AccountHub Technologies",
+  "appId": "com.quickswap.desktop",
+  "productName": "Quickswap",
+  "copyright": "Copyright © 2026 Quickswap Technologies",
   "directories": {
     "output": "dist-release"
   },
@@ -12,6 +12,10 @@
     "package.json"
   ],
   "extraResources": [
+    {
+      "from": "../../packages/security/bin/QuickswapSecHelper.exe",
+      "to": "bin/QuickswapSecHelper.exe"
+    },
     {
       "from": "../../packages/security/bin/AccountHubSecHelper.exe",
       "to": "bin/AccountHubSecHelper.exe"
@@ -36,7 +40,7 @@
     "allowToChangeInstallationDirectory": true,
     "createDesktopShortcut": "always",
     "createStartMenuShortcut": true,
-    "shortcutName": "AccountHub",
-    "uninstallDisplayName": "AccountHub Desktop"
+    "shortcutName": "Quickswap",
+    "uninstallDisplayName": "Quickswap Desktop"
   }
 }

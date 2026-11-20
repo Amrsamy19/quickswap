@@ -10,7 +10,7 @@ import {
   UpdateAccountInput,
   RegisterApplicationInput,
   UpdateSettingsInput,
-} from '@accounthub/shared';
+} from '@quickswap/shared';
 import { Sidebar, NavTab } from './components/Sidebar';
 import { Header } from './components/Header';
 import { DashboardView } from './features/dashboard/DashboardView';
@@ -33,7 +33,7 @@ export const App: React.FC = () => {
   const [selectedAppId, setSelectedAppId] = useState<string | undefined>(undefined);
   const [isAddAccountModalOpen, setIsAddAccountModalOpen] = useState(false);
 
-  const api = typeof window !== 'undefined' ? window.accountHubAPI : null;
+  const api = typeof window !== 'undefined' ? (window.quickswapAPI || window.accountHubAPI) : null;
 
   const loadData = useCallback(async () => {
     if (!api) return;
@@ -54,7 +54,7 @@ export const App: React.FC = () => {
       setActivities(acts);
       setSettings(setts);
     } catch (err) {
-      console.error('Failed to load AccountHub data:', err);
+      console.error('Failed to load Quickswap data:', err);
     }
   }, [api]);
 
@@ -149,7 +149,7 @@ export const App: React.FC = () => {
       case 'dashboard':
         return {
           title: 'Dashboard',
-          subtitle: 'Welcome to your universal desktop account hub',
+          subtitle: 'Welcome to Quickswap - your universal desktop account vault',
         };
       case 'applications':
         return {

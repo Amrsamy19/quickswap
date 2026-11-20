@@ -1,8 +1,8 @@
-import { DatabaseSync } from 'node:sqlite';
+﻿import { DatabaseSync } from 'node:sqlite';
 import fs from 'fs';
 import path from 'path';
 import { SCHEMA_SQL } from './schema';
-import { AppError } from '@accounthub/shared';
+import { AppError } from '@quickswap/shared';
 
 export class DatabaseConnection {
   private static instance: DatabaseSync | null = null;

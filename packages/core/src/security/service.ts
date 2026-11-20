@@ -1,6 +1,6 @@
-import { NativeBridge, CredentialVault } from '@accounthub/security';
-import { AccountSecretsRepository, AccountsRepository } from '@accounthub/database';
-import { SecurityStatus, StoredCredentialMetadata } from '@accounthub/shared';
+﻿import { NativeBridge, CredentialVault } from '@quickswap/security';
+import { AccountSecretsRepository, AccountsRepository } from '@quickswap/database';
+import { SecurityStatus, StoredCredentialMetadata } from '@quickswap/shared';
 
 export class CoreSecurityService {
   public static async getStatus(): Promise<SecurityStatus> {

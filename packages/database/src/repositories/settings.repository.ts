@@ -1,5 +1,5 @@
-import { DatabaseConnection } from '../connection';
-import { AppSettings } from '@accounthub/shared';
+﻿import { DatabaseConnection } from '../connection';
+import { AppSettings } from '@quickswap/shared';
 
 const DEFAULT_SETTINGS: AppSettings = {
   theme: 'dark',

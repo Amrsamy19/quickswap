@@ -7,7 +7,7 @@ import {
   UpdateAccountInput,
   AuthMethod,
   RIOT_REGIONS,
-} from '@accounthub/shared';
+} from '@quickswap/shared';
 import { Shield, Lock, Eye, EyeOff } from 'lucide-react';
 
 interface AccountModalProps {

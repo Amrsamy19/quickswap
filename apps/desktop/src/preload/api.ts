@@ -1,5 +1,6 @@
 import { ipcRenderer } from 'electron';
 import {
+  QuickswapAPI,
   AccountHubAPI,
   Application,
   RegisterApplicationInput,
@@ -17,9 +18,9 @@ import {
   ProcessStatus,
   LaunchHistoryEntry,
   IPC_CHANNELS,
-} from '@accounthub/shared';
+} from '@quickswap/shared';
 
-export const accountHubAPI: AccountHubAPI = {
+export const quickswapAPI: QuickswapAPI = {
   applications: {
     list: (): Promise<Application[]> => ipcRenderer.invoke(IPC_CHANNELS.APPLICATIONS_LIST),
     detect: (): Promise<Application[]> => ipcRenderer.invoke(IPC_CHANNELS.APPLICATIONS_DETECT),
@@ -87,3 +88,5 @@ export const accountHubAPI: AccountHubAPI = {
       ipcRenderer.invoke(IPC_CHANNELS.SETTINGS_UPDATE, input),
   },
 };
+
+export const accountHubAPI: AccountHubAPI = quickswapAPI;

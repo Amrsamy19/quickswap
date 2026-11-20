@@ -1,7 +1,7 @@
-import crypto from 'crypto';
-import { ActivityLogRepository, SettingsRepository } from '@accounthub/database';
-import { ActivityAction, ActivityEntityType, ActivityLogEntry } from '@accounthub/shared';
-import { SecuritySanitizer } from '@accounthub/security';
+﻿import crypto from 'crypto';
+import { ActivityLogRepository, SettingsRepository } from '@quickswap/database';
+import { ActivityAction, ActivityEntityType, ActivityLogEntry } from '@quickswap/shared';
+import { SecuritySanitizer } from '@quickswap/security';
 
 export class ActivityService {
   public static log(

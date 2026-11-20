@@ -1,6 +1,6 @@
-import { execFile } from 'child_process';
+﻿import { execFile } from 'child_process';
 import path from 'path';
-import { ProcessStatus } from '@accounthub/shared';
+import { ProcessStatus } from '@quickswap/shared';
 
 export class ProcessMonitor {
   /**

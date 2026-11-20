@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Application, Account } from '@accounthub/shared';
+import { Application, Account } from '@quickswap/shared';
 import {
   Users,
   Search,

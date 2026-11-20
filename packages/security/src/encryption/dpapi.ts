@@ -1,5 +1,5 @@
-import { NativeBridge } from '../native/native-bridge';
-import { AppError } from '@accounthub/shared';
+﻿import { NativeBridge } from '../native/native-bridge';
+import { AppError } from '@quickswap/shared';
 
 export class DpapiVault {
   /**

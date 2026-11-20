@@ -47,7 +47,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
           <div>
             <div className="font-bold text-lg tracking-tight bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
-              AccountHub
+              Quickswap
             </div>
             <div className="text-[11px] font-medium text-cyan-400 tracking-wider uppercase">
               Desktop Vault

@@ -1,11 +1,11 @@
 import { ipcMain } from 'electron';
-import { AccountService } from '@accounthub/core';
+import { AccountService } from '@quickswap/core';
 import {
   IPC_CHANNELS,
   CreateAccountInput,
   UpdateAccountInput,
   AccountFilter,
-} from '@accounthub/shared';
+} from '@quickswap/shared';
 import { copySecretWithAutoWipe } from '../clipboard-helper';
 
 export function registerAccountIpcHandlers(): void {

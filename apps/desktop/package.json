@@ -1,8 +1,8 @@
 {
-  "name": "@accounthub/desktop",
+  "name": "@quickswap/desktop",
   "version": "1.0.0",
-  "description": "AccountHub - Universal desktop account manager for Windows",
-  "author": "AccountHub Technologies",
+  "description": "Quickswap - Universal desktop account manager for Windows",
+  "author": "Quickswap Technologies",
   "private": true,
   "main": "./dist-electron/main/index.js",
   "scripts": {
@@ -14,10 +14,10 @@
     "start": "node ./scripts/start.js"
   },
   "dependencies": {
-    "@accounthub/core": "workspace:*",
-    "@accounthub/database": "workspace:*",
-    "@accounthub/security": "workspace:*",
-    "@accounthub/shared": "workspace:*",
+    "@quickswap/core": "workspace:*",
+    "@quickswap/database": "workspace:*",
+    "@quickswap/security": "workspace:*",
+    "@quickswap/shared": "workspace:*",
     "lucide-react": "^1.16.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

@@ -1,4 +1,4 @@
-import { ApplicationCapabilities, LaunchResult } from '@accounthub/shared';
+﻿import { ApplicationCapabilities, LaunchResult } from '@quickswap/shared';
 
 export interface LaunchContext {
   accountId: string;

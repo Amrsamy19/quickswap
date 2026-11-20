@@ -1,5 +1,5 @@
-import { SettingsRepository } from '@accounthub/database';
-import { AppSettings, UpdateSettingsInput, UpdateSettingsSchema } from '@accounthub/shared';
+﻿import { SettingsRepository } from '@quickswap/database';
+import { AppSettings, UpdateSettingsInput, UpdateSettingsSchema } from '@quickswap/shared';
 
 export class AppSettingsService {
   public static get(): AppSettings {

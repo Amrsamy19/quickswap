@@ -1,8 +1,9 @@
-import { AccountHubAPI } from '@accounthub/shared';
+import { QuickswapAPI } from '@quickswap/shared';
 
 declare global {
   interface Window {
-    accountHubAPI: AccountHubAPI;
+    quickswapAPI?: QuickswapAPI;
+    accountHubAPI?: QuickswapAPI;
   }
 }
 

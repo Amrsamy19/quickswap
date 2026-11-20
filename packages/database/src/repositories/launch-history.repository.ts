@@ -1,5 +1,5 @@
-import { DatabaseConnection } from '../connection';
-import { LaunchHistoryEntry } from '@accounthub/shared';
+﻿import { DatabaseConnection } from '../connection';
+import { LaunchHistoryEntry } from '@quickswap/shared';
 
 export interface LaunchHistoryRow {
   id: string;
