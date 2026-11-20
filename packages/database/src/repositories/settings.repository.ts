@@ -65,6 +65,20 @@ export class SettingsRepository {
     `).run(key, JSON.stringify(value));
   }
 
+  public static getAllRaw(): Record<string, string> {
+    const db = DatabaseConnection.getInstance();
+    const rows = db.prepare('SELECT key, value FROM settings').all() as unknown as Array<{ key: string; value: string }>;
+    const result: Record<string, string> = {};
+    for (const r of rows) {
+      try {
+        result[r.key] = JSON.parse(r.value);
+      } catch {
+        result[r.key] = r.value;
+      }
+    }
+    return result;
+  }
+
   public static removeRaw(key: string): void {
     const db = DatabaseConnection.getInstance();
     db.prepare('DELETE FROM settings WHERE key = ?').run(key);

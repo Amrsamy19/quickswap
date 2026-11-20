@@ -43,6 +43,32 @@ export interface VaultLockStatus {
   autoLockMinutes: number;
 }
 
+export interface BackupPreviewData {
+  valid: boolean;
+  version: number;
+  exportedAt: string;
+  accountsCount: number;
+  applicationsCount: number;
+  accounts: Array<{ id: string; displayName: string; username?: string | null; appName: string }>;
+  applications: Array<{ id: string; name: string }>;
+}
+
+export interface RestoreResultData {
+  success: boolean;
+  accountsRestored: number;
+  applicationsRestored: number;
+  message: string;
+}
+
+export interface LegacyMigrationStatusData {
+  legacyFolderFound: boolean;
+  legacyFolderPath: string | null;
+  legacyDbFound: boolean;
+  legacyCredentialCount: number;
+  migrationCompleted: boolean;
+  migrationDate: string | null;
+}
+
 export interface QuickswapAPI {
   applications: {
     list(): Promise<Application[]>;
@@ -101,6 +127,18 @@ export interface QuickswapAPI {
 
   dashboard: {
     getSummary(): Promise<DashboardSummary>;
+  };
+
+  backup: {
+    export(passphrase: string, outputPath: string): Promise<{ success: boolean; filePath: string; accountsCount: number }>;
+    inspect(passphrase: string, filePath: string): Promise<BackupPreviewData>;
+    restore(passphrase: string, filePath: string, conflictStrategy?: 'overwrite' | 'skip' | 'keep_both'): Promise<RestoreResultData>;
+  };
+
+  migration: {
+    getStatus(): Promise<LegacyMigrationStatusData>;
+    run(): Promise<{ migratedDatabase: boolean; migratedCredentials: number; message: string }>;
+    cleanup(): Promise<{ cleanedCredentials: number; cleanedFolder: boolean; message: string }>;
   };
 
   window: {

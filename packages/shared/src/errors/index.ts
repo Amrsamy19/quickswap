@@ -13,7 +13,8 @@ export type ErrorCode =
   | 'DATABASE_ERROR'
   | 'DATABASE_MIGRATION_ERROR'
   | 'IPC_VALIDATION_FAILED'
-  | 'UNAUTHORIZED_ACCESS';
+  | 'UNAUTHORIZED_ACCESS'
+  | 'UNAUTHORIZED_IPC';
 
 export class AppError extends Error {
   public readonly code: ErrorCode;

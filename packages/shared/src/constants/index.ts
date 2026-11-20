@@ -66,6 +66,14 @@ export const IPC_CHANNELS = {
 
   DASHBOARD_GET_SUMMARY: 'dashboard:getSummary',
 
+  BACKUP_EXPORT: 'backup:export',
+  BACKUP_INSPECT: 'backup:inspect',
+  BACKUP_RESTORE: 'backup:restore',
+
+  LEGACY_MIGRATION_GET_STATUS: 'legacyMigration:getStatus',
+  LEGACY_MIGRATION_RUN: 'legacyMigration:run',
+  LEGACY_MIGRATION_CLEANUP: 'legacyMigration:cleanup',
+
   WINDOW_MINIMIZE: 'window:minimize',
   WINDOW_MAXIMIZE: 'window:maximize',
   WINDOW_CLOSE: 'window:close',

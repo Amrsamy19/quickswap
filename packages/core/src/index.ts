@@ -13,3 +13,5 @@ export * from './adapters/riot.session';
 export * from './adapters/riot.adapter';
 export * from './adapters/steam.adapter';
 export * from './adapters/generic.adapter';
+export * from './migration/legacy-migration.service';
+export * from './backup/backup.service';

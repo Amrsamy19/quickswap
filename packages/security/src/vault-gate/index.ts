@@ -48,15 +48,19 @@ export class VaultGate {
 
   public static async hasMasterPassword(): Promise<boolean> {
     if (!this.storageProvider) return false;
-    const modernFlag = await this.storageProvider.get(this.KEY_HAS_MASTER_PWD);
-    if (modernFlag === 'true') return true;
+    try {
+      const modernFlag = await this.storageProvider.get(this.KEY_HAS_MASTER_PWD);
+      if (modernFlag === 'true') return true;
 
-    const wrappedDek = await this.storageProvider.get(this.KEY_WRAPPED_DEK);
-    if (wrappedDek) return true;
+      const wrappedDek = await this.storageProvider.get(this.KEY_WRAPPED_DEK);
+      if (wrappedDek) return true;
 
-    // Check legacy v1.0 hash
-    const legacyHash = await this.storageProvider.get(this.LEGACY_KEY_HASH);
-    return Boolean(legacyHash);
+      // Check legacy v1.0 hash
+      const legacyHash = await this.storageProvider.get(this.LEGACY_KEY_HASH);
+      return Boolean(legacyHash);
+    } catch {
+      return false;
+    }
   }
 
   public static async getStatus(): Promise<VaultLockStatus> {
