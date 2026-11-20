@@ -1,17 +1,32 @@
 # Dependencies
-node_modules
-.pnpm-store
+node_modules/
+.pnpm-store/
+.pnpm-debug.log*
 
-# Build cache & outputs
+# Build artifacts & compiled outputs
+dist/
+dist-*/
+dist-electron/
+dist-release/
+build/
+out/
 *.tsbuildinfo
-dist
-dist-electron
-dist-release
-out
-build
-coverage
+.vite/
+.turbo/
+coverage/
+*.blockmap
 
-# Database and local data
+# Installer and packaged binaries
+apps/desktop/dist-release/
+*.exe
+!packages/security/bin/*.exe
+*.msi
+*.zip
+*.tar.gz
+*.dmg
+*.app
+
+# SQLite & local database storage
 *.db
 *.db.*
 *.db-journal
@@ -21,20 +36,24 @@ coverage
 data/
 userData/
 
-# Logs and environment
+# Logs and runtime files
 *.log
 npm-debug.log*
 yarn-debug.log*
 pnpm-debug.log*
+
+# Environment and secrets
 .env
 .env.local
 .env.*.local
 
-# IDE
-.vscode
-.idea
+# IDE & OS temporary files
+.vscode/
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+Thumbs.db
+.DS_Store
