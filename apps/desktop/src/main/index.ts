@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, Tray, nativeImage, powerMonitor, session } from 'electron';
+import { app, BrowserWindow, Menu, Tray, nativeImage, powerMonitor, session, shell } from 'electron';
 import path from 'path';
 import fs from 'fs';
 import { DatabaseConnection } from '@quickswap/database';
@@ -7,10 +7,12 @@ import { VaultGate } from '@quickswap/security';
 import { DEFAULT_DATABASE_NAME, LEGACY_DATABASE_NAME, IPC_CHANNELS } from '@quickswap/shared';
 import { registerAllIpcHandlers } from './ipc';
 import { initializeAutoUpdater } from './auto-updater';
+import { isAppQuitting, setAppQuitting, prepareForAppQuitOrUpdate } from './lifecycle';
+
+export { isAppQuitting, setAppQuitting, prepareForAppQuitOrUpdate };
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
-let isQuitting = false;
 
 function getIconPath(): string | undefined {
   const iconCandidates = [
@@ -62,7 +64,7 @@ function createTray(): void {
       {
         label: 'Quit Quickswap',
         click: () => {
-          isQuitting = true;
+          setAppQuitting(true);
           app.quit();
         },
       },
@@ -134,8 +136,13 @@ function createWindow(): void {
     });
   });
 
-  // Security Hardening: Block unauthorized external window open and restrict navigation
-  mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  // Security Hardening: Block unauthorized external window open (allow trusted GitHub release URLs)
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith('https://github.com/Amrsamy19/quickswap')) {
+      shell.openExternal(url).catch(() => {});
+    }
+    return { action: 'deny' };
+  });
   mainWindow.webContents.on('will-navigate', (event, url) => {
     if (!url.startsWith('http://localhost') && !url.startsWith('file://')) {
       event.preventDefault();
@@ -176,7 +183,7 @@ function createWindow(): void {
 
   // Keep running in system tray when closed unless explicitly quitting
   mainWindow.on('close', (event) => {
-    if (!isQuitting) {
+    if (!isAppQuitting()) {
       event.preventDefault();
       mainWindow?.hide();
     }
@@ -254,7 +261,7 @@ app.whenReady().then(async () => {
 
   // 7. Initialize Auto-Updater for signed releases
   try {
-    initializeAutoUpdater(mainWindow);
+    initializeAutoUpdater(mainWindow, settings);
   } catch (err) {
     console.warn('[Quickswap] AutoUpdater initialization note:', err);
   }
@@ -269,11 +276,11 @@ app.whenReady().then(async () => {
 });
 
 app.on('before-quit', () => {
-  isQuitting = true;
+  setAppQuitting(true);
 });
 
 app.on('window-all-closed', () => {
-  if (isQuitting || process.platform !== 'darwin') {
+  if (isAppQuitting() || process.platform !== 'darwin') {
     DatabaseConnection.close();
     app.quit();
   }

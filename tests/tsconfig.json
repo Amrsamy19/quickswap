@@ -4,7 +4,13 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "noEmit": true,
-    "types": ["node"]
+    "types": ["node"],
+    "paths": {
+      "@quickswap/shared": ["../packages/shared/src"],
+      "@quickswap/database": ["../packages/database/src"],
+      "@quickswap/security": ["../packages/security/src"],
+      "@quickswap/core": ["../packages/core/src"]
+    }
   },
   "include": ["./**/*.ts"]
 }

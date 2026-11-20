@@ -8,6 +8,8 @@ export interface AppSettings {
   enableAuditLog: boolean;
   backupPath: string | null;
   databasePath: string;
+  autoCheckUpdates?: boolean;
+  autoDownloadUpdates?: boolean;
 }
 
 export type UpdateSettingsInput = Partial<AppSettings>;

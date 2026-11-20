@@ -9,7 +9,9 @@ const DEFAULT_SETTINGS: AppSettings = {
   autoLockMinutes: 0,
   enableAuditLog: true,
   backupPath: null,
-  databasePath: 'accounthub.db',
+  databasePath: 'quickswap.db',
+  autoCheckUpdates: true,
+  autoDownloadUpdates: false,
 };
 
 export class SettingsRepository {

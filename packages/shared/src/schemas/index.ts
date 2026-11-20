@@ -70,6 +70,8 @@ export const UpdateSettingsSchema = z.object({
   autoLockMinutes: z.number().int().min(0).max(1440).optional(),
   enableAuditLog: z.boolean().optional(),
   backupPath: z.string().nullable().optional(),
+  autoCheckUpdates: z.boolean().optional(),
+  autoDownloadUpdates: z.boolean().optional(),
 });
 
 export const SetMasterPasswordSchema = z.object({

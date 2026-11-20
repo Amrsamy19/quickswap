@@ -4,6 +4,10 @@ export const LEGACY_CREDENTIAL_TARGET_PREFIX = 'AccountHub';
 export const DEFAULT_DATABASE_NAME = 'quickswap.db';
 export const LEGACY_DATABASE_NAME = 'accounthub.db';
 
+export const GITHUB_REPO_URL = 'https://github.com/Amrsamy19/quickswap';
+export const GITHUB_RELEASES_URL = 'https://github.com/Amrsamy19/quickswap/releases';
+export const GITHUB_LATEST_RELEASE_URL = 'https://github.com/Amrsamy19/quickswap/releases/latest';
+
 export const RIOT_REGIONS = [
   { id: 'NA', name: 'North America (NA)' },
   { id: 'EUW', name: 'Europe West (EUW)' },
@@ -78,4 +82,12 @@ export const IPC_CHANNELS = {
   WINDOW_MAXIMIZE: 'window:maximize',
   WINDOW_CLOSE: 'window:close',
   WINDOW_IS_MAXIMIZED: 'window:isMaximized',
+
+  UPDATER_CHECK_FOR_UPDATES: 'updater:checkForUpdates',
+  UPDATER_DOWNLOAD: 'updater:downloadUpdate',
+  UPDATER_INSTALL: 'updater:installUpdate',
+  UPDATER_GET_STATUS: 'updater:getStatus',
+  UPDATER_STATUS_CHANGED: 'updater:statusChanged',
+
+  SHELL_OPEN_EXTERNAL: 'shell:openExternal',
 } as const;

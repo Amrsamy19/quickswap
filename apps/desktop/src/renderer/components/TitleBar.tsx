@@ -23,11 +23,31 @@ export const TitleBar: React.FC<TitleBarProps> = ({
   onLockVault,
 }) => {
   const [isMaximized, setIsMaximized] = useState(false);
+  const [updateAvailable, setUpdateAvailable] = useState<string | null>(null);
   const api = typeof window !== 'undefined' ? (window.quickswapAPI || window.accountHubAPI) : null;
 
   useEffect(() => {
     if (api?.window?.isMaximized) {
       api.window.isMaximized().then(setIsMaximized).catch(() => {});
+    }
+
+    if (api?.updater) {
+      api.updater.getStatus().then((status) => {
+        if (status.status === 'available' || status.status === 'downloaded') {
+          setUpdateAvailable(status.availableVersion || 'new');
+        }
+      }).catch(() => {});
+
+      const unsub = api.updater.onStatusChange((status) => {
+        if (status.status === 'available' || status.status === 'downloaded') {
+          setUpdateAvailable(status.availableVersion || 'new');
+        } else if (status.status === 'not-available' || status.status === 'idle') {
+          setUpdateAvailable(null);
+        }
+      });
+      return () => {
+        if (unsub) unsub();
+      };
     }
   }, [api]);
 
@@ -48,8 +68,15 @@ export const TitleBar: React.FC<TitleBarProps> = ({
         <div className="flex items-center gap-2">
           <QuickswapLogo className="w-5 h-5 rounded-md shadow-sm shadow-blue-500/20 flex-shrink-0" />
           <span className="font-bold text-xs tracking-tight text-white">Quickswap</span>
-          <span className="text-[10px] text-slate-500 font-mono hidden sm:inline">v2.0</span>
+          <span className="text-[10px] text-slate-500 font-mono hidden sm:inline">v1.0.1</span>
         </div>
+
+        {updateAvailable && (
+          <div className="hidden lg:flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-[10px] text-cyan-300 animate-pulse">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+            <span>Update v{updateAvailable} Available</span>
+          </div>
+        )}
 
         {/* Interactive Vault Status Indicator */}
         {vaultLockStatus?.hasMasterPassword ? (

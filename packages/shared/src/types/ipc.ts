@@ -67,6 +67,34 @@ export interface LegacyMigrationStatusData {
   migrationDate: string | null;
 }
 
+export interface UpdateProgressData {
+  percent: number;
+  bytesPerSecond: number;
+  transferred: number;
+  total: number;
+}
+
+export type UpdateStatus =
+  | 'idle'
+  | 'checking'
+  | 'available'
+  | 'not-available'
+  | 'downloading'
+  | 'downloaded'
+  | 'error'
+  | 'dev-mode';
+
+export interface UpdateStatusData {
+  status: UpdateStatus;
+  currentVersion: string;
+  availableVersion?: string;
+  releaseDate?: string;
+  releaseNotes?: string;
+  progress?: UpdateProgressData;
+  error?: string;
+  isPortable?: boolean;
+}
+
 export interface QuickswapAPI {
   applications: {
     list(): Promise<Application[]>;
@@ -144,6 +172,18 @@ export interface QuickswapAPI {
     maximize(): Promise<boolean>;
     close(): Promise<void>;
     isMaximized(): Promise<boolean>;
+  };
+
+  updater: {
+    checkForUpdates(): Promise<UpdateStatusData>;
+    downloadUpdate(): Promise<{ success: boolean; message?: string }>;
+    installUpdate(): Promise<void>;
+    getStatus(): Promise<UpdateStatusData>;
+    onStatusChange(callback: (status: UpdateStatusData) => void): () => void;
+  };
+
+  shell: {
+    openExternal(url: string): Promise<boolean>;
   };
 }
 

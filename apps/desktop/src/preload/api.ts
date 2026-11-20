@@ -19,6 +19,7 @@ import {
   ProcessStatus,
   LaunchHistoryEntry,
   DashboardSummary,
+  UpdateStatusData,
   IPC_CHANNELS,
 } from '@quickswap/shared';
 
@@ -136,6 +137,29 @@ export const quickswapAPI: QuickswapAPI = {
     maximize: (): Promise<boolean> => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_MAXIMIZE),
     close: (): Promise<void> => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_CLOSE),
     isMaximized: (): Promise<boolean> => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_IS_MAXIMIZED),
+  },
+
+  updater: {
+    checkForUpdates: (): Promise<UpdateStatusData> =>
+      ipcRenderer.invoke(IPC_CHANNELS.UPDATER_CHECK_FOR_UPDATES),
+    downloadUpdate: (): Promise<{ success: boolean; message?: string }> =>
+      ipcRenderer.invoke(IPC_CHANNELS.UPDATER_DOWNLOAD),
+    installUpdate: (): Promise<void> =>
+      ipcRenderer.invoke(IPC_CHANNELS.UPDATER_INSTALL),
+    getStatus: (): Promise<UpdateStatusData> =>
+      ipcRenderer.invoke(IPC_CHANNELS.UPDATER_GET_STATUS),
+    onStatusChange: (callback: (status: UpdateStatusData) => void): (() => void) => {
+      const handler = (_event: any, status: UpdateStatusData) => callback(status);
+      ipcRenderer.on(IPC_CHANNELS.UPDATER_STATUS_CHANGED, handler);
+      return () => {
+        ipcRenderer.removeListener(IPC_CHANNELS.UPDATER_STATUS_CHANGED, handler);
+      };
+    },
+  },
+
+  shell: {
+    openExternal: (url: string): Promise<boolean> =>
+      ipcRenderer.invoke(IPC_CHANNELS.SHELL_OPEN_EXTERNAL, url),
   },
 };
 

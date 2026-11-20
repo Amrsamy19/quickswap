@@ -6,6 +6,7 @@ import { registerLauncherIpcHandlers } from './launcher.ipc';
 import { registerDashboardIpcHandlers } from './dashboard.ipc';
 import { registerWindowIpcHandlers } from './window.ipc';
 import { registerBackupAndMigrationIpcHandlers } from './backup.ipc';
+import { registerUpdaterIpcHandlers } from './updater.ipc';
 
 export function registerAllIpcHandlers(): void {
   registerApplicationIpcHandlers();
@@ -17,4 +18,5 @@ export function registerAllIpcHandlers(): void {
   registerDashboardIpcHandlers();
   registerWindowIpcHandlers();
   registerBackupAndMigrationIpcHandlers();
+  registerUpdaterIpcHandlers();
 }
