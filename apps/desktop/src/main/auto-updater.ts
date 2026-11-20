@@ -131,6 +131,18 @@ async function checkGitHubReleasesDev(): Promise<UpdateStatusData> {
   });
 }
 
+function sanitizeUpdaterError(rawError?: string): string {
+  if (!rawError) return 'Failed to check for updates';
+  if (rawError.includes('404') && (rawError.includes('releases.atom') || rawError.includes('authentication token'))) {
+    return 'Unable to access releases: The GitHub repository (Amrsamy19/quickswap) is currently Private. GitHub requires the repository to be Public for unauthenticated desktop auto-updates.';
+  }
+  if (rawError.includes('net::ERR_INTERNET_DISCONNECTED') || rawError.includes('ENOTFOUND') || rawError.includes('ETIMEDOUT')) {
+    return 'No internet connection detected. Please verify your network and retry.';
+  }
+  const firstLine = rawError.split('\n')[0].trim();
+  return firstLine.length > 150 ? `${firstLine.slice(0, 150)}...` : firstLine;
+}
+
 /**
  * Initializes electron-updater for signed releases.
  */
@@ -197,7 +209,7 @@ export function initializeAutoUpdater(
     broadcastStatus({
       status: 'error',
       currentVersion: app.getVersion(),
-      error: err.message,
+      error: sanitizeUpdaterError(err.message),
     });
   });
 
@@ -236,7 +248,7 @@ export async function checkForUpdatesManually(): Promise<UpdateStatusData> {
     const errorStatus: UpdateStatusData = {
       status: 'error',
       currentVersion: app.getVersion(),
-      error: err?.message || 'Failed to check for updates',
+      error: sanitizeUpdaterError(err?.message),
       isPortable: isPortableExecutable(),
     };
     broadcastStatus(errorStatus);
